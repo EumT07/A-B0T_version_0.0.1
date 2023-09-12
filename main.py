@@ -11,12 +11,16 @@ class TLDClock():
         self.window.title("Bamboo Clock")
         self.window.iconbitmap("./img/Bamboohr.ico")
         self.window.eval("tk::PlaceWindow . center")
-        # self.window.resizable(0,0)
+        self.window.resizable(0,0)
         self.window.geometry("440x400")
 
         #Frames
         self.frame1 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
         self.frame2 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+        self.frameUser = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+        self.frameTime = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+
+        #Container Time inside frame2
         self.container = LabelFrame(self.frame2, text="Time",padx=5,pady=5)
 
         #current_hour
@@ -24,23 +28,38 @@ class TLDClock():
         current_hour.config(bg="#2c2c2c",fg="#fff")
         current_hour.grid(row=2,column=0,padx=5,pady=2,sticky=W)
         self.showHour = Label(self.container)
-
-        self.frame_Principal()
         
-
+        self.frame_Principal()
+    #Delete frame 1: principal
     def clear_widgets(self,frame):
-         # select all frame widgets and delete them
-            frame.destroy() 
-    
-    def menu(self):
-        pass
+        #destroy first frame
+        frame.destroy()
 
+    def hide_menu_frames(self):
+        self.frame2.pack_forget()
+        self.frameUser.pack_forget()
+        self.frameTime.pack_forget()
+
+    def menu(self):
+        menuBar = Menu(self.window)
+        self.window.config(menu=menuBar)
+
+        #Menu options
+        menuBar.add_command(label="Clock",command=self.frame_Sencond)
+
+        settings = Menu(menuBar, tearoff=0)
+        #Settings - options
+        menuBar.add_cascade(label="Settings",menu=settings)
+        #Optionces
+        settings.add_command(label="User",command=self.frame_user)
+        settings.add_command(label="Time",command=self.frame_time)
+  
     def frame_Principal(self):
         #Principal Frame
         self.frame1.pack(fill="both",expand=1)
         
         #Image
-        logo = PhotoImage(file="./img/bamboohr.png")
+        logo = PhotoImage(file="./img/javascript.png")
         image = Label(self.frame1,image=logo,width=150,height=150)
         image.pack(side="top",pady=40)
 
@@ -52,12 +71,13 @@ class TLDClock():
         
         #Button
         Button(self.frame1,text="Let's go",command=self.frame_Sencond,width=10,height=20).pack(side="bottom",pady=40)
-
-        
-    
+ 
     def frame_Sencond(self):
         self.clear_widgets(self.frame1)
+        self.menu()
         self.digitalClock()
+
+        self.hide_menu_frames()
         # #Date
 
         # #Second frame
@@ -91,9 +111,22 @@ class TLDClock():
         day_text.config(bg="#2c2c2c",fg="#fff")
         day_text.grid(row=1,column=1,padx=2,pady=4,sticky=W)
 
-        #New Frame
+        #Counter
+        counter = Label(self.frame2, text="00:00:00",font="12",padx=18,pady=10)
+        counter.grid(row=1,column=0,columnspan=4,padx=100,pady=40)
 
+        # Buttons
+        start_button = Button(self.frame2,text="Start",padx=20,pady=5)
+        start_button.config(bg="Green",fg="#fff")
+        start_button.grid(row=2,column=0,columnspan=4)
+    
+    def frame_user(self):
+        self.hide_menu_frames()
+        self.frameUser.pack(fill="both",expand=1)
         
+    def frame_time(self):
+        self.hide_menu_frames()
+        self.frameTime.pack(fill="both",expand=1)
         
     def digitalClock(self):
         today_text = time.strftime("%H:%M:%S")
@@ -102,7 +135,8 @@ class TLDClock():
         self.showHour.grid(row=2,column=1,padx=2,pady=4,sticky=W)
         self.showHour.after(200, self.digitalClock)    
         
-
+    def hello(self):
+        print("Hello")
 
 if __name__ == "__main__":
     window = Tk()
