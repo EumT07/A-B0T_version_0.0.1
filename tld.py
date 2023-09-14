@@ -53,11 +53,11 @@ class Tld():
         return
         
     def clock(self,driver):
-        driver.implicitly_wait(5)
-        clock_In = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fngne8")))
-        # waiting
-        time.sleep(4)
-        clock_In.click()
+        # driver.implicitly_wait(5)
+        # clock_In = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fngne8")))
+        # # waiting
+        # time.sleep(4)
+        # clock_In.click()
         time.sleep(4)
         self.quit(driver)
         return

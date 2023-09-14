@@ -29,13 +29,13 @@ class Clock():
             if (today.hour == 14 and today.minute == 00 and today.second == 0):
                 self.tld_clockIn.startConnection()
                 continue
-            elif(today.hour == 19 and today.minute == 30 and today.second == 0):
+            elif(today.hour == 19 and today.minute == 00 and today.second == 0):
                 self.tld_breakIn.startConnection()
                 continue
-            elif(today.hour == 20 and today.minute == 0 and today.second == 0):
+            elif(today.hour == 19 and today.minute == 30 and today.second == 0):
                 self.tld_breakOut.startConnection()
                 continue
-            elif(today.hour == 22 and today.minute == 30 and today.second == 0):
+            elif(today.hour == 23 and today.minute == 30 and today.second == 0):
                 self.tld_clockOut.startConnection()
                 break
 
