@@ -58,7 +58,7 @@ class Tld():
         # # waiting
         # time.sleep(4)
         # clock_In.click()
-        time.sleep(2)
+        time.sleep(4)
         self.quit(driver)
         return
         
