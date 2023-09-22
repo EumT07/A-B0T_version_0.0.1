@@ -5,10 +5,10 @@ import pickle
 import time
 import os
 from tld import *
+from test import *
 from dotenv import load_dotenv
 
 load_dotenv()
-
 
 class TLDClock():
     #Timer
@@ -20,6 +20,7 @@ class TLDClock():
     tld_clockOut = None
     tld_breakIn = None
     tld_breakOut = None
+    tld_test = None
     #Records
     clockIn_message = "No records Yet"
     breakIn_message = "No records Yet"
@@ -52,6 +53,9 @@ class TLDClock():
         #Container Time inside frame2
         self.container = LabelFrame(self.frame2, text="Time",padx=5,pady=5)
 
+        #User Icon
+        self.user_icon = PhotoImage(file="./img/userIcon.PNG")
+
         #current_hour
         current_hour = Label(self.container,text="Current Hour :")
         current_hour.config(bg="#2c2c2c",fg="#fff")
@@ -65,7 +69,7 @@ class TLDClock():
         
         self.frame_Principal()
         
-
+    # Frames
     #Delete frame 1: principal
     def clear_widgets(self,frame):
         #destroy first frame
@@ -89,7 +93,8 @@ class TLDClock():
         #Optionces
         settings.add_command(label="User",command=self.frame_user)
         settings.add_command(label="Time",command=self.frame_time)
-  
+    
+    #Frame 1
     def frame_Principal(self):
         #Principal Frame
         self.frame1.pack(fill="both",expand=1)
@@ -109,7 +114,7 @@ class TLDClock():
         lets_go_button = Button(self.frame1,text="Let's go",command=self.frame_Sencond,width=10,height=20)
         lets_go_button.config(bg="#83c333",fg="#fff")
         lets_go_button.pack(side="bottom",pady=60)
- 
+    #Frame 2
     def frame_Sencond(self):
         self.clear_widgets(self.frame1)
         self.hide_menu_frames()
@@ -118,7 +123,8 @@ class TLDClock():
         #Getting user
         user = self.load_user_info()
         clockData = self.load_clock_data()
-
+        text_bot_message = ""
+        
         
         if(not(user == None) and not(clockData == None)):
             email = user["email"]
@@ -130,10 +136,11 @@ class TLDClock():
             self.tld_breakOut = Break_Out(email,password)
             self.digitalClock()
             # self.digital_counter()
-            print("Bot is running")
+            text_bot_message = "Bot running"
         else:
-            print("first you must set user and time in order to start the bot")
-    
+            text_bot_message = "¡¡¡ Set user/pass and time clock !!!"
+            pass
+            
   
         #Date
 
@@ -142,7 +149,7 @@ class TLDClock():
 
         #Date Container
         self.container.config(bg="#2c2c2c",fg="#fff")
-        self.container.grid(row=0,column=0,columnspan=4,padx=110,pady=20,sticky=N)
+        self.container.grid(row=0,column=1,columnspan=1,padx=30,pady=10,sticky=N+S)
         
         #Date
         today = datetime.now()
@@ -171,13 +178,13 @@ class TLDClock():
         #Records
         record = Label(self.frame2, text="Records",padx=5,pady=10)
         record.config(bg="#2c2c2c",fg="#ffff00")
-        record.grid(row=1,column=0,columnspan=4,padx=100,pady=20)
+        record.grid(row=1,column=1,columnspan=1,padx=45,pady=10,sticky=N+S)
     
 
         #Clock in 
         record_clockIn = Label(self.frame2, text="Clock In :")
         record_clockIn.config(bg="#2c2c2c",fg="#83c333")
-        record_clockIn.grid(row=2,column=0,padx=20,pady=4,sticky=W)
+        record_clockIn.grid(row=2,column=0,padx=10,pady=8,sticky=W)
         #text
         # text=self.clockIn_message
         record_text_clockIn = Label(self.frame2,text=self.clockIn_message)
@@ -186,12 +193,12 @@ class TLDClock():
             record_text_clockIn.config(bg="#2c2c2c",fg="#ffff00",padx=30)
         else:
             record_text_clockIn.config(bg="#2c2c2c",fg="#ff0000",padx=30)
-        record_text_clockIn.grid(row=2,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+        record_text_clockIn.grid(row=2,column=1)
 
         #Break in 
         record_breakIn = Label(self.frame2, text="Break In :")
         record_breakIn.config(bg="#2c2c2c",fg="#83c333")
-        record_breakIn.grid(row=3,column=0,padx=20,pady=4,sticky=W)
+        record_breakIn.grid(row=3,column=0,padx=10,pady=8,sticky=W)
         #text
         record_text_breakIn = Label(self.frame2,text=self.breakIn_message)
 
@@ -199,31 +206,36 @@ class TLDClock():
             record_text_breakIn.config(bg="#2c2c2c",fg="#ffff00",padx=30)
         else:
             record_text_breakIn.config(bg="#2c2c2c",fg="#ff0000",padx=30)
-        record_text_breakIn.grid(row=3,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+        record_text_breakIn.grid(row=3,column=1)
 
         #Break out 
         record_breakOut = Label(self.frame2, text="Break Out :")
         record_breakOut.config(bg="#2c2c2c",fg="#83c333")
-        record_breakOut.grid(row=4,column=0,padx=20,pady=4,sticky=W)
+        record_breakOut.grid(row=4,column=0,padx=10,pady=8,sticky=W)
         #text
         record_text_breakOut = Label(self.frame2,text=self.breakOut_message)
         if(self.active_breakOut_message):
             record_text_breakOut.config(bg="#2c2c2c",fg="#ffff00",padx=30)
         else:
             record_text_breakOut.config(bg="#2c2c2c",fg="#ff0000",padx=30)
-        record_text_breakOut.grid(row=4,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+        record_text_breakOut.grid(row=4,column=1)
 
         #Clock Our 
         record_clockOut = Label(self.frame2, text="Clock Out :")
         record_clockOut.config(bg="#2c2c2c",fg="#83c333")
-        record_clockOut.grid(row=5,column=0,padx=20,pady=4,sticky=W)
+        record_clockOut.grid(row=5,column=0,padx=10,pady=8,sticky=W)
         #text
         record_text_clockOut = Label(self.frame2,text=self.clockOut_message)
         if(self.active_clockOut_message):
             record_text_clockOut.config(bg="#2c2c2c",fg="#ffff00",padx=30)
         else: 
             record_text_clockOut.config(bg="#2c2c2c",fg="#ff0000",padx=30)
-        record_text_clockOut.grid(row=5,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+        record_text_clockOut.grid(row=5,column=1)
+
+        #Bot message
+        bot_message = Label(self.frame2, text=text_bot_message,padx=5,pady=10)
+        bot_message.config(bg="#2c2c2c",fg="#ffff00")
+        bot_message.grid(row=6,column=1,columnspan=1,padx=45,pady=10,sticky=N+S)
 
  
     #Settings : user
@@ -234,10 +246,15 @@ class TLDClock():
         #Getting user
         user = self.load_user_info()
 
+        #Image logo
+        image = Label(self.frameUser,image=self.user_icon)
+        image.config(bg="#2c2c2c")
+        image.grid(row=0,column=0,columnspan=4,padx=100,pady=20,sticky=N+S)
+
         #Framer user
         userInfo = LabelFrame(self.frameUser,text="User Info",padx=5,pady=5)
         userInfo.config(bg="#2c2c2c",fg="#fff")
-        userInfo.grid(row=0,column=0,columnspan=4,padx=100,pady=100,sticky=N)
+        userInfo.grid(row=1,column=0,columnspan=4,padx=100,pady=30,sticky=N)
         
         # Lables
         #Email
@@ -249,6 +266,28 @@ class TLDClock():
         password_Label.config(bg="#2c2c2c",fg="#fff")
         password_Label.grid(row=1,column=0,sticky=W)
 
+        #Frame buttons
+        frameBtn = Frame(self.frameUser, width=450, height=40)
+        frameBtn.config(bg="#2c2c2c")
+        frameBtn.grid(row=2,column=0,columnspan=6,pady=20)
+
+
+        #Buttons
+        #Save Button
+        save_btn = Button(frameBtn,text="Save",command=lambda:self.save_user(email.get(),password.get()))
+        save_btn.config(bg="#83c333",fg="#fff",padx=20,pady=10)
+        save_btn.grid(row=0,column=0,columnspan=2,padx=8) 
+
+        #Edit Button
+        clean_btn = Button(frameBtn,text="Clean",command=self.clean_user_info)
+        clean_btn.config(bg="#7f7f7f",fg="#fff",padx=20,pady=10,state="disabled")
+        clean_btn.grid(row=0,column=2,columnspan=2,padx=8)
+
+        # #Test Button
+        test_btn = Button(frameBtn,text="Test",command=lambda:self.test_user(email.get(),password.get()))
+        test_btn.config(bg="#7f7f7f",fg="#fff",padx=20,pady=10,state="disabled")
+        test_btn.grid(row=0,column=5,columnspan=2,padx=8)
+
         # Entries
         if(user):
             #Email Entry
@@ -258,6 +297,11 @@ class TLDClock():
             password = Entry(userInfo,width=25,textvariable=StringVar(userInfo,user["password"]),state="disable")
             password.config(justify="left",show="*")
             password.grid(row=1,column=1)
+            #Button
+            save_btn.config(bg="#7f7f7f",state="disabled")
+            test_btn.config(bg="#0000ff",fg="#fff",state="normal")
+            clean_btn.config(bg="#ffff00",fg="#000",state="normal")
+
         else:
             #Email Entry
             email = Entry(userInfo,width=25)
@@ -266,23 +310,7 @@ class TLDClock():
             password = Entry(userInfo,width=25)
             password.config(justify="left",show="*")
             password.grid(row=1,column=1)
-
-        #Frame buttons
-        frameBtn = Frame(self.frameUser,width=280,height=50)
-        frameBtn.config(bg="#2c2c2c")
-        frameBtn.grid(row=2,column=0,columnspan=4)
-
-        #Buttons
-        # #Save Button
-        save_btn = Button(frameBtn,text="Save",command=lambda:self.save_user(email.get(),password.get()))
-        save_btn.config(bg="#83c333",fg="#fff",padx=20,pady=10)
-        save_btn.grid(row=0,column=0,columnspan=2,padx=8) 
-
-        #Edit Button
-        edit_btn = Button(frameBtn,text="Clean",command=self.clean_user_info)
-        edit_btn.config(bg="#ffff00",fg="#000",padx=20,pady=10)
-        edit_btn.grid(row=0,column=2,columnspan=2,padx=8)
-
+                    
     def save_user(self,email,password):
         user = {"email":email,"password":password,"active": True}
         if(user["email"] and user["password"]):
@@ -314,7 +342,22 @@ class TLDClock():
             self.frame_user()
         except:
             pass
-    
+
+    def test_user(self,email,password):
+        try:
+            user = self.load_user_info()
+
+            if(not(user == None)):
+                email = user["email"]
+                password = user["password"]
+                self.tld_test = Test(email,password)
+                self.tld_test.startConnection()
+                time.sleep(1)
+                self.frame_user()
+        except:
+            pass
+        
+        
     
     #Settings : time  
     def frame_time(self):
@@ -577,8 +620,7 @@ class TLDClock():
             self.frame_Sencond()
 
 
-            
-            
+                
     def hello(self):
         print(self.running)
 

@@ -1,5 +1,4 @@
 #imports
-import os
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
@@ -12,15 +11,15 @@ import time
 
 
 class Tld():
+    url= "https://languagedoctors.bamboohr.com/login.php?r=%2Fhome"
     def __init__(self,email,password):
         self.email = email
         self.password = password
 
     def startConnection(self):
         driver = webdriver.Chrome()
-        url = os.getenv("url")
         driver.implicitly_wait(10)
-        driver.get(url)
+        driver.get(self.url)
         time.sleep(5)
         self.login(driver)
         return
@@ -65,7 +64,6 @@ class Tld():
     def quit(self,driver):
         driver.close()
         return
-    
 
 class Clock_In(Tld):
     def __init__(self,email,password):
@@ -73,7 +71,7 @@ class Clock_In(Tld):
 
     def clockTime(self):
         today_text = time.strftime("%H:%M:%S")
-        clock_in = f"Bamboohr Bot start at: {today_text} "
+        clock_in = f"Bamboohr Bot start at: {today_text}"
         return clock_in
 
     def __str__(self):
@@ -86,7 +84,7 @@ class Clock_Out(Tld):
     
     def clockTime(self):
         today_text = time.strftime("%H:%M:%S")
-        clock_out = f"Bamboohr Bot stop at: {today_text} "
+        clock_out = f"Bamboohr Bot stop at: {today_text}"
         return clock_out
 
     def __str__(self):
@@ -99,7 +97,7 @@ class Break_In(Tld):
     
     def clockTime(self):
         today_text = time.strftime("%H:%M:%S")
-        break_in = f"Bamboohr Bot stop at: {today_text} "
+        break_in = f"Bamboohr Bot stop at: {today_text}"
         return break_in
     
     def __str__(self):
@@ -112,7 +110,7 @@ class Break_Out(Tld):
     
     def clockTime(self):
         today_text = time.strftime("%H:%M:%S")
-        break_out = f"Bamboohr Bot start at: {today_text} "
+        break_out = f"Bamboohr Bot start at: {today_text}"
         return break_out
     
     def __str__(self):
