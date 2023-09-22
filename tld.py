@@ -53,11 +53,11 @@ class Tld():
         return
         
     def clock(self,driver):
-        # driver.implicitly_wait(5)
-        # clock_In = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fngne8")))
-        # # waiting
-        # time.sleep(4)
-        # clock_In.click()
+        driver.implicitly_wait(5)
+        clock_In = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "css-fngne8")))
+        # waiting
+        time.sleep(4)
+        clock_In.click()
         time.sleep(4)
         self.quit(driver)
         return
@@ -71,6 +71,11 @@ class Clock_In(Tld):
     def __init__(self,email,password):
         super().__init__(email,password)
 
+    def clockTime(self):
+        today_text = time.strftime("%H:%M:%S")
+        clock_in = f"Bamboohr Bot start at: {today_text} "
+        return clock_in
+
     def __str__(self):
         return "Clock In"
     
@@ -79,6 +84,11 @@ class Clock_Out(Tld):
     def __init__(self,email,password):
         super().__init__(email,password)
     
+    def clockTime(self):
+        today_text = time.strftime("%H:%M:%S")
+        clock_out = f"Bamboohr Bot stop at: {today_text} "
+        return clock_out
+
     def __str__(self):
         return "Clock Out"
 
@@ -87,6 +97,11 @@ class Break_In(Tld):
     def __init__(self,email,password):
         super().__init__(email,password)
     
+    def clockTime(self):
+        today_text = time.strftime("%H:%M:%S")
+        break_in = f"Bamboohr Bot stop at: {today_text} "
+        return break_in
+    
     def __str__(self):
         return "Break In"
 
@@ -94,6 +109,11 @@ class Break_In(Tld):
 class Break_Out(Tld):
     def __init__(self,email,password):
         super().__init__(email,password)
+    
+    def clockTime(self):
+        today_text = time.strftime("%H:%M:%S")
+        break_out = f"Bamboohr Bot start at: {today_text} "
+        return break_out
     
     def __str__(self):
         return "Break Out"

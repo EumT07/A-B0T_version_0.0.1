@@ -20,6 +20,16 @@ class TLDClock():
     tld_clockOut = None
     tld_breakIn = None
     tld_breakOut = None
+    #Records
+    clockIn_message = "No records Yet"
+    breakIn_message = "No records Yet"
+    breakOut_message = "No records Yet"
+    clockOut_message = "No records Yet"
+    #Active message
+    active_clockIn_message = False
+    active_breakIn_message = False
+    active_breakOut_message = False
+    active_clockOut_message = False
 
 
     def __init__(self,window):
@@ -49,13 +59,13 @@ class TLDClock():
         self.showHour = Label(self.container)
 
         #Counter Time
-        self.counter = Label(self.frame2,font="12",padx=18,pady=10)
+        # self.counter = Label(self.frame2,font="12",padx=18,pady=10)
         # current_time = f"{self.hour} : {self.minute} : {self.second}"
         # self.counter.config(text=current_time,fg="#000")
         
         self.frame_Principal()
-
         
+
     #Delete frame 1: principal
     def clear_widgets(self,frame):
         #destroy first frame
@@ -108,7 +118,7 @@ class TLDClock():
         #Getting user
         user = self.load_user_info()
         clockData = self.load_clock_data()
-        
+
         
         if(not(user == None) and not(clockData == None)):
             email = user["email"]
@@ -119,7 +129,11 @@ class TLDClock():
             self.tld_breakIn = Break_In(email,password)
             self.tld_breakOut = Break_Out(email,password)
             self.digitalClock()
-            self.digital_counter()
+            # self.digital_counter()
+            print("Bot is running")
+        else:
+            print("first you must set user and time in order to start the bot")
+    
   
         #Date
 
@@ -154,7 +168,64 @@ class TLDClock():
         day_text.config(bg="#2c2c2c",fg="#fff")
         day_text.grid(row=1,column=1,padx=2,pady=4,sticky=W)
 
+        #Records
+        record = Label(self.frame2, text="Records",padx=5,pady=10)
+        record.config(bg="#2c2c2c",fg="#ffff00")
+        record.grid(row=1,column=0,columnspan=4,padx=100,pady=20)
     
+
+        #Clock in 
+        record_clockIn = Label(self.frame2, text="Clock In :")
+        record_clockIn.config(bg="#2c2c2c",fg="#83c333")
+        record_clockIn.grid(row=2,column=0,padx=20,pady=4,sticky=W)
+        #text
+        # text=self.clockIn_message
+        record_text_clockIn = Label(self.frame2,text=self.clockIn_message)
+
+        if(self.active_clockIn_message):
+            record_text_clockIn.config(bg="#2c2c2c",fg="#ffff00",padx=30)
+        else:
+            record_text_clockIn.config(bg="#2c2c2c",fg="#ff0000",padx=30)
+        record_text_clockIn.grid(row=2,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+
+        #Break in 
+        record_breakIn = Label(self.frame2, text="Break In :")
+        record_breakIn.config(bg="#2c2c2c",fg="#83c333")
+        record_breakIn.grid(row=3,column=0,padx=20,pady=4,sticky=W)
+        #text
+        record_text_breakIn = Label(self.frame2,text=self.breakIn_message)
+
+        if(self.active_breakIn_message):
+            record_text_breakIn.config(bg="#2c2c2c",fg="#ffff00",padx=30)
+        else:
+            record_text_breakIn.config(bg="#2c2c2c",fg="#ff0000",padx=30)
+        record_text_breakIn.grid(row=3,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+
+        #Break out 
+        record_breakOut = Label(self.frame2, text="Break Out :")
+        record_breakOut.config(bg="#2c2c2c",fg="#83c333")
+        record_breakOut.grid(row=4,column=0,padx=20,pady=4,sticky=W)
+        #text
+        record_text_breakOut = Label(self.frame2,text=self.breakOut_message)
+        if(self.active_breakOut_message):
+            record_text_breakOut.config(bg="#2c2c2c",fg="#ffff00",padx=30)
+        else:
+            record_text_breakOut.config(bg="#2c2c2c",fg="#ff0000",padx=30)
+        record_text_breakOut.grid(row=4,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+
+        #Clock Our 
+        record_clockOut = Label(self.frame2, text="Clock Out :")
+        record_clockOut.config(bg="#2c2c2c",fg="#83c333")
+        record_clockOut.grid(row=5,column=0,padx=20,pady=4,sticky=W)
+        #text
+        record_text_clockOut = Label(self.frame2,text=self.clockOut_message)
+        if(self.active_clockOut_message):
+            record_text_clockOut.config(bg="#2c2c2c",fg="#ffff00",padx=30)
+        else: 
+            record_text_clockOut.config(bg="#2c2c2c",fg="#ff0000",padx=30)
+        record_text_clockOut.grid(row=5,column=1,columnspan=2,padx=10,pady=4,sticky=W)
+
+ 
     #Settings : user
     def frame_user(self):
         self.hide_menu_frames()
@@ -222,6 +293,7 @@ class TLDClock():
             pickle.dump(user,userData)
             self.frame2.pack_forget()
             time.sleep(1)
+            self.restart()
         else:
             print("Fields are empties")
             pass
@@ -365,6 +437,9 @@ class TLDClock():
             #Creat Pickle Documet
             userData = open("./db/clockinfo.pckl","wb")
             pickle.dump(clock_Data,userData)
+            self.frame2.pack_forget()
+            time.sleep(1)
+            self.restart()
         else:
             print("Fields are empties")
             pass
@@ -389,54 +464,22 @@ class TLDClock():
     
     #Time-Clock-Counter
     def digitalClock(self):
-        today_text = time.strftime("%H:%M:%S")
-        today_hour = int(time.strftime("%H"))
-        today_minute = int(time.strftime("%M"))
-        today_second = int(time.strftime("%S"))
+        try:
+            today_text = time.strftime("%H:%M:%S")
+            
+            #Get Hours data
+            clockData = self.load_clock_data()
 
-        clock_in = None
-        break_in = None
-        break_out = None
-        clock_out = None
-
-        #Get Hours data
-        clockData = self.load_clock_data()
-
-        if(clockData):
-            clock_in = clockData[0]
-            break_in = clockData[1]
-            break_out = clockData[2]
-            clock_out = clockData[3]
-        
-        if(today_hour == clock_in["hour"] and 
-           today_minute == clock_in["minutes"] and 
-           today_second == clock_in["seconds"]):
-            # self.tld_clockIn.startConnection()
-            print(self.tld_clockIn)
-            self.start_digital_counter()
-        if(today_hour == break_in["hour"] and 
-           today_minute == break_in["minutes"] and 
-           today_second == break_in["seconds"]):
-            # self.tld_breakIn.startConnection()
-            print(self.tld_breakIn)
-            self.stop_digital_counter()
-        if(today_hour == break_out["hour"] and 
-           today_minute == break_out["minutes"] and 
-           today_second == break_out["seconds"]):
-            # self.tld_breakOut.startConnection()
-            print(self.tld_breakOut)
-            self.start_digital_counter()
-        if(today_hour == clock_out["hour"] and 
-           today_minute == clock_out["minutes"] and 
-           today_second == clock_out["seconds"]):
-            # self.tld_clockOut.startConnection()
-            print(self.tld_clockOut)
-            self.stop_digital_counter()
-   
-        #Labels
-        self.showHour.config(text=today_text,bg="#2c2c2c",fg="#fff")
-        self.showHour.grid(row=2,column=1,padx=2,pady=4,sticky=W)
-        self.showHour.after(1000, self.digitalClock)    
+            if(not(clockData == None)):
+                self.check_time()
+            
+            #Labels
+            self.showHour.config(text=today_text,bg="#2c2c2c",fg="#fff")
+            self.showHour.grid(row=2,column=1,padx=2,pady=4,sticky=W)
+            self.showHour.after(1000, self.digitalClock)
+        except:
+            print("Error")
+            pass  
 
     def digital_counter(self):
         #Add 1
@@ -460,16 +503,88 @@ class TLDClock():
         
         self.counter.after(1000,self.digital_counter)
     
+    def reset_counter(self):
+        self.hour = 0
+        self.minute = 0
+        self.second = 0
+        return
+
     def start_digital_counter(self):
-        self.running = True
+        # self.running = True
+        today_text = time.strftime("%H:%M:%S")
+        print(f"Bamboohr Bot start at: {today_text} ")
         return
 
     def stop_digital_counter(self):
-        self.running = False
+        # self.running = False
+        today_text = time.strftime("%H:%M:%S")
+        print(f"Bamboohr Bot Stop at: {today_text} ")
         return
 
+    def check_time(self):
+        today_hour = int(time.strftime("%H"))
+        today_minute = int(time.strftime("%M"))
+        today_second = int(time.strftime("%S"))
+        
+        clock_in = None
+        break_in = None
+        break_out = None
+        clock_out = None
+
+        #Get Hours data
+        clockData = self.load_clock_data()
+
+        if(clockData):
+            clock_in = clockData[0]
+            break_in = clockData[1]
+            break_out = clockData[2]
+            clock_out = clockData[3]
+             
+        if(today_hour == clock_in["hour"] and 
+            today_minute == clock_in["minutes"] and 
+            today_second == clock_in["seconds"]):
+            # self.tld_clockIn.startConnection()
+            self.clockIn_message = self.tld_clockIn.clockTime()
+            self.active_clockIn_message = True
+            time.sleep(1)
+            self.frame_Sencond()     
+            
+        if(today_hour == break_in["hour"] and 
+           today_minute == break_in["minutes"] and 
+           today_second == break_in["seconds"]):
+            # self.tld_breakIn.startConnection()
+            self.breakIn_message = self.tld_breakIn.clockTime()
+            self.active_breakIn_message = True
+            time.sleep(1)
+            self.frame_Sencond()
+
+        if(today_hour == break_out["hour"] and 
+           today_minute == break_out["minutes"] and 
+           today_second == break_out["seconds"]):
+            # self.tld_breakOut.startConnection()
+            self.breakOut_message = self.tld_breakOut.clockTime()
+            self.active_breakOut_message = True
+            time.sleep(1)
+            self.frame_Sencond()
+             
+        if(today_hour == clock_out["hour"] and 
+           today_minute == clock_out["minutes"] and 
+           today_second == clock_out["seconds"]):
+            # self.tld_clockOut.startConnection()
+            self.clockOut_message = self.tld_clockOut.clockTime()
+            self.active_clockOut_message = True
+            time.sleep(1)
+            self.frame_Sencond()
+
+
+            
+            
     def hello(self):
         print(self.running)
+
+    def restart(self):
+        self.window.destroy()
+        os.startfile("main.py")
 
 if __name__ == "__main__":
     window = Tk()
