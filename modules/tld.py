@@ -8,8 +8,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from datetime import date, datetime, time as timeToday
 import time
 
-
-
 class Tld():
     url= "https://languagedoctors.bamboohr.com/login.php?r=%2Fhome"
     def __init__(self,email,password):
@@ -77,7 +75,6 @@ class Clock_In(Tld):
     def __str__(self):
         return "Clock In"
     
-
 class Clock_Out(Tld):
     def __init__(self,email,password):
         super().__init__(email,password)
@@ -90,7 +87,6 @@ class Clock_Out(Tld):
     def __str__(self):
         return "Clock Out"
 
-
 class Break_In(Tld):
     def __init__(self,email,password):
         super().__init__(email,password)
@@ -102,7 +98,6 @@ class Break_In(Tld):
     
     def __str__(self):
         return "Break In"
-
 
 class Break_Out(Tld):
     def __init__(self,email,password):
