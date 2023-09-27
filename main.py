@@ -24,10 +24,10 @@ class TLDClock():
     tld_breakOut = None
     tld_test = None
     #Records
-    clockIn_message = "No records Yet"
-    breakIn_message = "No records Yet"
-    breakOut_message = "No records Yet"
-    clockOut_message = "No records Yet"
+    clockIn_message = None
+    breakIn_message = None
+    breakOut_message = None
+    clockOut_message = None
     data_records = []
     #Active message
     active_clockIn_message = False
@@ -111,11 +111,11 @@ class TLDClock():
             help = Menu(menuBar,tearoff=0)
             menuBar.add_cascade(label="Help",menu=help)
             #1 manual
-            help.add_command(label="view",state="disabled")
+            help.add_command(label="More info",state="disabled")
             help.add_command(label="Send feedback",state="disabled")
             help.add_separator()
             help.add_command(label="About..",command=self.about_bot)
-
+            
         except Exception as e:
             print(type(e).__name__)
     
@@ -151,6 +151,8 @@ class TLDClock():
                 lets_go_button.pack(side="bottom",pady=60)
             else:
                 errorMessage.showinfo("Internet Connection","Check your internet Connection and try again")
+            
+            self.check_records()
 
         except Exception as e:
             print(type(e).__name__)
@@ -160,13 +162,14 @@ class TLDClock():
             self.clear_widgets(self.frame1)
             self.hide_menu_frames()
             self.menu()
-        
+            self.show_records()
+            
             #Getting user
             user = self.load_user_info()
             clockData = self.load_clock_data()
             text_bot_message = ""
-        
-        
+
+            
             if(not(user == None) and not(clockData == None)):
                 email = user["email"]
                 password = user["password"]
@@ -182,7 +185,6 @@ class TLDClock():
                 text_bot_message = "¡¡¡ Set your email/pass\nand time clock !!!"
                 pass
             
-  
             #Date
 
             #Second frame
@@ -277,11 +279,12 @@ class TLDClock():
             bot_message = Label(self.frame2, text=text_bot_message,padx=5,pady=10)
             bot_message.config(bg="#2c2c2c",fg="#ffff00")
             bot_message.grid(row=6,column=1,columnspan=1,padx=45,pady=10,sticky=N+S)
-
+             
+        except FileNotFoundError:
+            pass
         except Exception as e:
             print(type(e).__name__)
     
- 
     #Settings : user
     def frame_user(self):
         try:
@@ -423,8 +426,7 @@ class TLDClock():
                 self.frame_user()
         except Exception as e:
             print(type(e).__name__)
-        
-        
+             
     #Settings : time  
     def frame_time(self):
         try:
@@ -594,15 +596,18 @@ class TLDClock():
                 self.frame_time()
         except Exception as e:
             print(type(e).__name__)
-    
-    
+       
     #Time-Clock-Counter
     def digitalClock(self):
         try:
             today_text = time.strftime("%H:%M:%S")
+            #Checking if there is weekend
+            day_name = time.strftime("%A")
             
             #Get Hours data
             clockData = self.load_clock_data()
+
+            print(day_name.lower() == "saturday" or day_name == "sunday")
 
             if(not(clockData == None)):
                 self.check_time()
@@ -669,12 +674,67 @@ class TLDClock():
         except Exception as e:
             print(type(e).__name__)
     """ - - - - """
+
     #Records
     def save_records(self,records):
-        self.data_records.append(records)
-        print(self.data_records)
-        pass
+        try:
+            data = open("./db/records.pckl", "wb")
 
+            self.data_records.append(records)
+            #Saving data
+            pickle.dump(self.data_records,data)
+        except:
+            print("Error Saving records")
+
+    def show_records(self):
+        try:
+            data = open("./db/records.pckl","rb")
+            records = pickle.load(data)
+            self.data_records = records
+            
+            if(data):
+    
+                if(len(records) == 1):
+                    self.clockIn_message = records[0]["Clock_In"]
+                else:
+                    self.clockIn_message = "No records Yet"
+
+                if(len(records) == 2):
+                    self.clockIn_message = records[0]["Clock_In"]
+                    self.breakIn_message = records[1]["Break_In"]
+                else:
+                    self.breakIn_message = "No records Yet"
+                
+                if(len(records) == 3):
+                    self.clockIn_message = records[0]["Clock_In"]
+                    self.breakIn_message = records[1]["Break_In"]
+                    self.breakOut_message = records[2]["Break_Out"]
+                else:
+                    self.breakOut_message = "No records Yet"
+                
+                if(len(records) == 4):
+                    self.clockIn_message = records[0]["Clock_In"]
+                    self.breakIn_message = records[1]["Break_In"]
+                    self.breakOut_message = records[2]["Break_Out"]
+                    self.clockOut_message = records[3]["Clock_Out"]
+                else:
+                    self.clockOut_message = "No records Yet"
+            else:
+                pass
+        except FileNotFoundError:
+            self.clockIn_message = "No records Yet"
+            self.breakIn_message = "No records Yet"
+            self.breakOut_message = "No records Yet"
+            self.clockOut_message = "No records Yet"
+            pass
+        except Exception as e:
+            print(type(e).__name__)
+            print("No data yet")
+
+            pass
+    
+    
+    #Start Bot-App   
     def check_time(self):
         try:
             today_hour = int(time.strftime("%H"))
@@ -701,7 +761,7 @@ class TLDClock():
                 # self.tld_clockIn.startConnection()
                 self.clockIn_message = self.tld_clockIn.clockTime()
                 self.active_clockIn_message = True
-                self.save_records(self.clockIn_message)
+                self.save_records({"Clock_In":self.clockIn_message})
                 time.sleep(1)
                 self.frame_Sencond()     
             
@@ -711,7 +771,7 @@ class TLDClock():
                 # self.tld_breakIn.startConnection()
                 self.breakIn_message = self.tld_breakIn.clockTime()
                 self.active_breakIn_message = True
-                self.save_records(self.breakIn_message)
+                self.save_records({"Break_In":self.breakIn_message})
                 time.sleep(1)
                 self.frame_Sencond()
 
@@ -721,7 +781,7 @@ class TLDClock():
                 # self.tld_breakOut.startConnection()
                 self.breakOut_message = self.tld_breakOut.clockTime()
                 self.active_breakOut_message = True
-                self.save_records(self.breakOut_message)
+                self.save_records({"Break_Out":self.breakOut_message})
                 time.sleep(1)
                 self.frame_Sencond()
              
@@ -731,15 +791,17 @@ class TLDClock():
                 # self.tld_clockOut.startConnection()
                 self.clockOut_message = self.tld_clockOut.clockTime()
                 self.active_clockOut_message = True
-                self.save_records(self.clockOut_message)
+                self.save_records({"Clock_Out":self.clockOut_message})
                 time.sleep(1)
                 self.frame_Sencond()
+                
         except Exception as e:
             print(type(e).__name__)
 
     #Help Frame
     def manual(self):
         pass
+    
     def send_feedback(self):
         pass
        
@@ -767,6 +829,20 @@ class TLDClock():
         except:
             pass
         
+    
+    #Records More than 4, trying to clear records and avoid any king of mistake
+    def check_records(self):
+        try:
+            data = open("./db/records.pckl", "rb")
+            records = pickle.load(data)
+            records.clear()
+            #2.1 Saving it
+            new_Data = open("./db/records.pckl","wb")
+            pickle.dump(records,new_Data)
+        except:
+            pass
+
+    
     #Restart APP          
     def restart(self):
         try:
@@ -775,6 +851,7 @@ class TLDClock():
         except Exception as e:
             print(type(e).__name__)
         
+
 
 if __name__ == "__main__":
     window = Tk()
