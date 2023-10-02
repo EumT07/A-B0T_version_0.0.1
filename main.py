@@ -1,9 +1,11 @@
 from tkinter import *
 from tkinter import ttk, messagebox as errorMessage
 from datetime import datetime
+import pyglet
 import pickle
+import sqlite3
 import time
-import os
+import os, subprocess, sys
 import requests
 from modules.tld import *
 from modules.test import *
@@ -12,7 +14,36 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS2
+    except Exception:
+        base_path = os.path.abspath(".")
+   
+    return os.path.join(base_path, relative_path)
+
 class TLDClock():
+    db_user = resource_path("db\\user.db")
+    query_user = """
+    CREATE TABLE user(
+        email VARCHAR(100) NOT NULL,
+        password VARCHAR(100) NOT NULL)"""
+    db_records = resource_path("db\\records.db")
+    query_records ="""
+    CREATE TABLE records(
+        record_clockIn VARCHAR(100) NOT NULL,
+        record_breakIn VARCHAR(100) NOT NULL,
+        record_breakOut VARCHAR(100) NOT NULL,
+        record_clockOut VARCHAR(100) NOT NULL)"""
+    db_clockTime = resource_path("db\\time.db")
+    query_clockTime ="""
+    CREATE TABLE records(
+        time_clockIn VARCHAR(100) NOT NULL,
+        time_breakIn VARCHAR(100) NOT NULL,
+        time_breakOut VARCHAR(100) NOT NULL,
+        time_clockOut VARCHAR(100) NOT NULL)"""
     #Timer
     hour = 0
     minute = 0
@@ -39,8 +70,8 @@ class TLDClock():
     def __init__(self,window):
         #window App
         self.window = window
-        self.window.title("Bamboo Bot Clock")
-        self.window.iconbitmap("./img/Bamboohr.ico")
+        self.window.title("A-B0T")
+        self.window.iconbitmap(resource_path("img\\icon.ico"))
         self.window.eval("tk::PlaceWindow . center")
         self.window.resizable(0,0)
         self.window.geometry("440x400")
@@ -53,26 +84,41 @@ class TLDClock():
         self.frameabout = Frame(self.window,bg="#2c2c2c",width=440,height=400)
 
         #Img
-        self.logo = PhotoImage(file="./img/logo.PNG")
+        self.logo = PhotoImage(file=resource_path("img\\logo.PNG"))
         #Container Time inside frame2
         self.container = LabelFrame(self.frame2, text="Time",padx=5,pady=5)
 
         #User Icon
-        self.user_icon = PhotoImage(file="./img/userIcon.PNG")
+        self.user_icon = PhotoImage(file=resource_path("img\\userIcon.PNG"))
 
         #current_hour
         current_hour = Label(self.container,text="Current Hour :")
         current_hour.config(bg="#2c2c2c",fg="#fff")
         current_hour.grid(row=2,column=0,padx=5,pady=2,sticky=W)
         self.showHour = Label(self.container)
-
-        #Counter Time
-        # self.counter = Label(self.frame2,font="12",padx=18,pady=10)
-        # current_time = f"{self.hour} : {self.minute} : {self.second}"
-        # self.counter.config(text=current_time,fg="#000")
         
         self.frame_Principal()
-        
+        self.create_DataBase(self.db_user,self.query_user)
+        self.create_DataBase(self.db_records,self.query_records)
+        self.create_DataBase(self.db_clockTime,self.db_clockTime)
+
+    #Data BAse sqlite3
+    def create_DataBase(self,dbName,query):
+        with sqlite3.connect(dbName) as connection:
+            cursor = connection.cursor()
+            try:
+                cursor.execute(query)
+            except sqlite3.OperationalError:
+                print(F"DB ok")
+                pass
+        pass
+    #Run commds Data base
+    def run_dataBase(self,dbName,query,parameters = ()):
+        with sqlite3.connect(dbName) as connection:
+            cursor = connection.cursor()
+            result = cursor.execute(query,parameters)
+            connection.commit()
+        return result
     # Frames
     #Delete frame 1: principal
     def clear_widgets(self,frame):
@@ -80,7 +126,8 @@ class TLDClock():
             #destroy first frame
             frame.destroy()
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> clear_widgets ")
+            pass
 
     def hide_menu_frames(self):
         try:
@@ -89,8 +136,10 @@ class TLDClock():
             self.frameTime.pack_forget()
             self.frameabout.pack_forget()
         except Exception as e:
-            print(type(e).__name__)
-
+            print(f"Error: {type(e).__name__} -> hide_menu_frames ")
+            pass
+    
+    #Menu
     def menu(self):
         try:
             menuBar = Menu(self.window)
@@ -117,14 +166,17 @@ class TLDClock():
             help.add_command(label="About..",command=self.about_bot)
             
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> menu")
+            pass
     
+    #Internet
     def check_internet_connection(self):
         try:
             requests.get("https://www.google.com", timeout=3)
             return True
         except Exception as e:
             return False
+    
     #Frame 1
     def frame_Principal(self):
         try:
@@ -134,13 +186,14 @@ class TLDClock():
             #Image logo
             image = Label(self.frame1,image=self.logo)
             image.config(bg="#2c2c2c")
-            image.pack(side="top",pady=30)
+            image.pack(side="top",pady=20)
+   
 
             #Label
-            text_Content = "Welcome to Automatic BambooHr Bot\n it helps you to control your clock in and clock out\nMy the Force Be with You"
-            welcome = Label(self.frame1, text=text_Content)
+            text_Content = "A-B0T\n\nWelcome to A-B0T (Automatic Bot)\n it helps you to control your clock in and clock out\n< My the Force Be with You >"
+            welcome = Label(self.frame1, text=text_Content,font=("@Yu Gothic UI Semilight",12))
             welcome.config(bg="#2c2c2c",fg="#fff")
-            welcome.pack(pady=5)
+            welcome.pack(pady=10)
         
             internet_Connection = self.check_internet_connection()
             
@@ -148,14 +201,16 @@ class TLDClock():
                 #Button
                 lets_go_button = Button(self.frame1,text="Let's go",command=self.frame_Sencond,width=10,height=20)
                 lets_go_button.config(bg="#83c333",fg="#fff")
-                lets_go_button.pack(side="bottom",pady=60)
+                lets_go_button.pack(side="bottom",pady=30)
             else:
                 errorMessage.showinfo("Internet Connection","Check your internet Connection and try again")
             
             self.check_records()
 
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> frame_Principal")
+            pass
+    
     #Frame 2
     def frame_Sencond(self):
         try:
@@ -178,11 +233,11 @@ class TLDClock():
                 self.tld_clockOut = Clock_Out(email,password)
                 self.tld_breakIn = Break_In(email,password)
                 self.tld_breakOut = Break_Out(email,password)
-                self.digitalClock()
+                # self.digitalClock()
                 # self.digital_counter()
                 text_bot_message = "Bot is running"
             else:
-                text_bot_message = "¡¡¡ Set your email/pass\nand time clock !!!"
+                text_bot_message = "¡¡¡ Bot off !!!"
                 pass
             
             #Date
@@ -220,14 +275,14 @@ class TLDClock():
 
             #Records
             record = Label(self.frame2, text="Records",padx=5,pady=10)
-            record.config(bg="#2c2c2c",fg="#ffff00")
-            record.grid(row=1,column=1,columnspan=1,padx=45,pady=10,sticky=N+S)
+            record.config(bg="#2c2c2c",fg="#ffff00",font=("Georgia",10))
+            record.grid(row=1,column=1,columnspan=1,padx=40,pady=8,sticky=N+S)
     
 
             #Clock in 
             record_clockIn = Label(self.frame2, text="Clock In :")
-            record_clockIn.config(bg="#2c2c2c",fg="#83c333")
-            record_clockIn.grid(row=2,column=0,padx=10,pady=8,sticky=W)
+            record_clockIn.config(bg="#2c2c2c",fg="#83c333",font=("Georgia",10))
+            record_clockIn.grid(row=2,column=0,padx=8,pady=8,sticky=W)
             #text
             # text=self.clockIn_message
             record_text_clockIn = Label(self.frame2,text=self.clockIn_message)
@@ -240,8 +295,8 @@ class TLDClock():
 
             #Break in 
             record_breakIn = Label(self.frame2, text="Break In :")
-            record_breakIn.config(bg="#2c2c2c",fg="#83c333")
-            record_breakIn.grid(row=3,column=0,padx=10,pady=8,sticky=W)
+            record_breakIn.config(bg="#2c2c2c",fg="#83c333",font=("Georgia",10))
+            record_breakIn.grid(row=3,column=0,padx=8,pady=8,sticky=W)
             #text
             record_text_breakIn = Label(self.frame2,text=self.breakIn_message)
 
@@ -253,8 +308,8 @@ class TLDClock():
 
             #Break out 
             record_breakOut = Label(self.frame2, text="Break Out :")
-            record_breakOut.config(bg="#2c2c2c",fg="#83c333")
-            record_breakOut.grid(row=4,column=0,padx=10,pady=8,sticky=W)
+            record_breakOut.config(bg="#2c2c2c",fg="#83c333",font=("Georgia",10))
+            record_breakOut.grid(row=4,column=0,padx=8,pady=8,sticky=W)
             #text
             record_text_breakOut = Label(self.frame2,text=self.breakOut_message)
             if(self.active_breakOut_message):
@@ -265,8 +320,8 @@ class TLDClock():
 
             #Clock Our 
             record_clockOut = Label(self.frame2, text="Clock Out :")
-            record_clockOut.config(bg="#2c2c2c",fg="#83c333")
-            record_clockOut.grid(row=5,column=0,padx=10,pady=8,sticky=W)
+            record_clockOut.config(bg="#2c2c2c",fg="#83c333",font=("Georgia",10))
+            record_clockOut.grid(row=5,column=0,padx=8,pady=8,sticky=W)
             #text
             record_text_clockOut = Label(self.frame2,text=self.clockOut_message)
             if(self.active_clockOut_message):
@@ -277,13 +332,16 @@ class TLDClock():
 
             #Bot message
             bot_message = Label(self.frame2, text=text_bot_message,padx=5,pady=10)
-            bot_message.config(bg="#2c2c2c",fg="#ffff00")
-            bot_message.grid(row=6,column=1,columnspan=1,padx=45,pady=10,sticky=N+S)
+            bot_message.config(bg="#2c2c2c",fg="#ffff00",font=("Georgia",10))
+            bot_message.grid(row=6,column=1,columnspan=1,padx=40,pady=10,sticky=N+S)
+
+            self.digitalClock()
              
         except FileNotFoundError:
             pass
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> frame_Second")
+            pass
     
     #Settings : user
     def frame_user(self):
@@ -318,7 +376,6 @@ class TLDClock():
             frameBtn = Frame(self.frameUser, width=450, height=40)
             frameBtn.config(bg="#2c2c2c")
             frameBtn.grid(row=2,column=0,columnspan=6,pady=20)
-
 
             #Buttons
             #Save Button
@@ -359,53 +416,66 @@ class TLDClock():
                 password.config(justify="left",show="*")
                 password.grid(row=1,column=1)
         except Exception as e:
-            print(type(e).__name__)    
+            print(f"Error: {type(e).__name__} -> frame_user ")
+            pass    
                     
     def save_user(self,email,password):
         try:
             user = {"email":email,"password":password,"active": True}
             if(user["email"] and user["password"]):
-                #Save data
-                self.active = True
-                #Creat Pickle Documet
-                userData = open("./db/userinfo.pckl","wb")
-                pickle.dump(user,userData)
+                # Create data base sql3
+                query = "INSERT INTO user VALUES(?,?)"
+                parameters = (email,password)
+                self.run_dataBase(self.db_user,query,parameters)
                 self.frame2.pack_forget()
                 time.sleep(1)
-                self.restart()
+                self.frame_Sencond()
+                # self.restart()
             else:
                 errorMessage.showerror("Error", "Fields are Empties")
         except Exception as e:
-            print(type(e).__name__)        
+            print(f"Error: {type(e).__name__} -> save_user")
+            pass        
  
     def load_user_info(self):
         try:
             user = None
-            userdata = open("./db/userinfo.pckl","rb")
+            userdata = None
+            #Read Data base
+            query = "SELECT email, password FROM user"
+            userdata = self.run_dataBase(self.db_user,query).fetchone()
             if(userdata):
-                user = pickle.load(userdata)
+                user = {"email":userdata[0],"password":userdata[1]}
                 return user
             else:
                 return user
         except FileNotFoundError:
             pass
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> load_user_info")
+            pass
 
     def clean_user_info(self):
+        
         #Delete file
         try:
             result = errorMessage.askquestion("Clean","Do you want to clean all fields?")
 
             if(result):
-                os.remove("./db/userinfo.pckl")
+                userdata = self.load_user_info()
+                userEmail = userdata["email"]
+                #Delete user data
+                query = "DELETE FROM user WHERE email = ?"
+                self.run_dataBase(self.db_user,query,(userEmail,))
                 time.sleep(1)
                 self.frame_user()
             else:
                 time.sleep(1)
                 self.frame_user()
+
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> clean_user_info ")
+            pass
 
     def test_user(self,email,password):
         try:
@@ -420,12 +490,14 @@ class TLDClock():
                 loginError = self.tld_test.loginError
                 if(not(loginError == None)):
                     errorMessage.showerror("Account",loginError)
-                #success login message
-                errorMessage.showinfo("Success","Your email and password are correct")
-                time.sleep(2)
-                self.frame_user()
+                else:
+                    #success login message
+                    errorMessage.showinfo("Success","Your email and password are correct")
+                    time.sleep(2)
+                    self.frame_user()
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> test_user ")
+            pass
              
     #Settings : time  
     def frame_time(self):
@@ -523,7 +595,8 @@ class TLDClock():
                 save_btn.config(bg="#83c333",fg="#fff",command=lambda:self.save_clock_data(clock_in.get(),break_in.get(),break_out.get(),clock_out.get()))
                 clean_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> frame_time ")
+            pass
         
     def save_clock_data(self,clock_in,break_in,break_out,clock_out):
         try:
@@ -556,22 +629,24 @@ class TLDClock():
                 clock_Data = [clockIn,breakIn,breakOut,clockOut]
             
                 #Creat Pickle Documet
-                userData = open("./db/clockinfo.pckl","wb")
+                userData = open(resource_path("db\\clockinfo.pckl"),"wb")
                 pickle.dump(clock_Data,userData)
                 self.frame2.pack_forget()
                 time.sleep(1)
-                self.restart()
+                self.frame_Sencond()
+                # self.restart()
 
             else:
                 errorMessage.showerror("Error", "Fields are Empties or Wrong format")
                 pass
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> save_clock_data ")
+            pass
     
     def load_clock_data(self):
         try:
             clock_Data = None
-            userdata = open("./db/clockinfo.pckl","rb")
+            userdata = open(resource_path("db\\clockinfo.pckl"),"rb")
             if(userdata):
                 clock_Data = pickle.load(userdata)
                 return clock_Data
@@ -580,7 +655,8 @@ class TLDClock():
         except FileNotFoundError:
             pass
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> load_clock_data ")
+            pass
 
     def clean_clock_data(self):
         #Delete file
@@ -588,14 +664,15 @@ class TLDClock():
             result = errorMessage.askquestion("Clean","Do you want to clean all fields?")
 
             if(result):
-                os.remove("./db/clockinfo.pckl")
+                os.remove(resource_path("db\\clockinfo.pckl"))
                 time.sleep(1)
                 self.frame_time()
             else:
                 time.sleep(1)
                 self.frame_time()
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error: {type(e).__name__} -> clean_clock_data ")
+            pass
        
     #Time-Clock-Counter
     def digitalClock(self):
@@ -606,9 +683,9 @@ class TLDClock():
             
             #Get Hours data
             clockData = self.load_clock_data()
-
-            print(day_name.lower() == "saturday" or day_name == "sunday")
-
+            # weekend = day_name.lower() == "saturday" or day_name.lower() == "sunday"
+        
+            # if(not(weekend) and not(clockData == None)):
             if(not(clockData == None)):
                 self.check_time()
             
@@ -616,8 +693,8 @@ class TLDClock():
             self.showHour.config(text=today_text,bg="#2c2c2c",fg="#fff")
             self.showHour.grid(row=2,column=1,padx=2,pady=4,sticky=W)
             self.showHour.after(1000, self.digitalClock)
-        except:
-            print("Hour Error")
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> digitalClock")
             pass  
     
     """There is a little bit issue with the code, I'm getting an issue with the counter, when I save user or hours time data, and the bot starts to do its task the counter starts to add x2 the counter number, I don't know if there is a problem with the loops. I'll leave the code while I try to resolve it and be able to add a counter to the app."""
@@ -678,17 +755,18 @@ class TLDClock():
     #Records
     def save_records(self,records):
         try:
-            data = open("./db/records.pckl", "wb")
+            data = open(resource_path("db\\records.pckl"), "wb")
 
             self.data_records.append(records)
             #Saving data
             pickle.dump(self.data_records,data)
-        except:
-            print("Error Saving records")
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> save_records")
+            pass
 
     def show_records(self):
         try:
-            data = open("./db/records.pckl","rb")
+            data = open(resource_path("db\\records.pckl"),"rb")
             records = pickle.load(data)
             self.data_records = records
             
@@ -728,12 +806,9 @@ class TLDClock():
             self.clockOut_message = "No records Yet"
             pass
         except Exception as e:
-            print(type(e).__name__)
-            print("No data yet")
-
+            print(f"Error: {type(e).__name__} -> show_records")
             pass
-    
-    
+      
     #Start Bot-App   
     def check_time(self):
         try:
@@ -797,6 +872,7 @@ class TLDClock():
                 
         except Exception as e:
             print(type(e).__name__)
+            pass
 
     #Help Frame
     def manual(self):
@@ -817,41 +893,42 @@ class TLDClock():
             image.pack(side="top",pady=30)
 
             #Label
-            text_Content = "Bamboo bot Clock\nVersion 0.0.1\n\nBambooHr Bot is an automated bot helping us\nto control the 'clock in' and 'clock out'\nwithin a time range set by the user\nthe bot is built with python 3.11.5\n\n© bamboohr bot clock 2023. All rights reserved"
+            text_Content = "A-B0T\nVersion 0.0.1\n\nA-B0T is an automated bot helping us to control\nthe 'clock in' and 'clock out' within a time range\n set by the user with its Bammboo account data\nthe bot is built with python 3.11 and Selenium.5\n\n© A-B0T 2023. All rights reserved"
             welcome = Label(self.frameabout, text=text_Content)
-            welcome.config(bg="#2c2c2c",fg="#fff")
+            welcome.config(bg="#2c2c2c",fg="#fff",font=("@Yu Gothic UI Semilight",10))
             welcome.pack(pady=5)
 
-            link = Label(self.frameabout,text="\nGithub code")
+            link = Label(self.frameabout,text="\nSource Code")
             link.config(bg="#2c2c2c", fg="#1e90ff", cursor="hand2")
             link.pack()
             link.bind("<Button-1>", lambda e: webbrowser.open("https://github.com/EumT07"))
-        except:
+        except Exception as e:
+            print(type(e).__name__)
             pass
         
-    
     #Records More than 4, trying to clear records and avoid any king of mistake
     def check_records(self):
         try:
-            data = open("./db/records.pckl", "rb")
+            data = open(resource_path("db\\records.pckl"), "rb")
             records = pickle.load(data)
             records.clear()
             #2.1 Saving it
-            new_Data = open("./db/records.pckl","wb")
+            new_Data = open(resource_path("db\\records.pckl"),"wb")
             pickle.dump(records,new_Data)
-        except:
+        except Exception as e:
+            print(type(e).__name__)
             pass
 
-    
     #Restart APP          
     def restart(self):
         try:
             self.window.destroy()
-            os.startfile("main.py")
+            # os.startfile("main.py")
+            os.startfile(resource_path("A-B0T.exe"))
         except Exception as e:
+            errorMessage.showwarning("Error",f"Path Erro: {type(e).__name__}")
             print(type(e).__name__)
         
-
 
 if __name__ == "__main__":
     window = Tk()
