@@ -33,13 +33,11 @@ class TLDClock():
     db_records = resource_path("db\\records.db")
     query_records ="""
     CREATE TABLE records(
-        record_clockIn VARCHAR(100) NOT NULL,
-        record_breakIn VARCHAR(100) NOT NULL,
-        record_breakOut VARCHAR(100) NOT NULL,
-        record_clockOut VARCHAR(100) NOT NULL)"""
+        record_name VARCHAR(100),
+        records_value VARCHAR(100))"""
     db_clockTime = resource_path("db\\time.db")
     query_clockTime ="""
-    CREATE TABLE records(
+    CREATE TABLE timeClock(
         time_clockIn VARCHAR(100) NOT NULL,
         time_breakIn VARCHAR(100) NOT NULL,
         time_breakOut VARCHAR(100) NOT NULL,
@@ -100,7 +98,7 @@ class TLDClock():
         self.frame_Principal()
         self.create_DataBase(self.db_user,self.query_user)
         self.create_DataBase(self.db_records,self.query_records)
-        self.create_DataBase(self.db_clockTime,self.db_clockTime)
+        self.create_DataBase(self.db_clockTime,self.query_clockTime)
 
     #Data BAse sqlite3
     def create_DataBase(self,dbName,query):
@@ -440,7 +438,6 @@ class TLDClock():
     def load_user_info(self):
         try:
             user = None
-            userdata = None
             #Read Data base
             query = "SELECT email, password FROM user"
             userdata = self.run_dataBase(self.db_user,query).fetchone()
@@ -600,11 +597,36 @@ class TLDClock():
         
     def save_clock_data(self,clock_in,break_in,break_out,clock_out):
         try:
-
             if(not(clock_in == "" or len(clock_in) < 8) and 
             not(break_in == "" or len(clock_in) < 8) and 
             not(break_out == "" or len(clock_in) < 8) and 
             not(clock_out == "" or len(clock_in) < 8)):
+                #DAta
+                clock_Data = [clock_in,break_in,break_out,clock_out]
+                #Creat Pickle Documet
+                query = "INSERT INTO timeClock VALUES (?,?,?,?)"
+                parameters = tuple(clock_Data)
+                self.run_dataBase(self.db_clockTime,query,parameters)
+                self.frame2.pack_forget()
+                time.sleep(1)
+                self.frame_Sencond()
+                # self.restart()
+
+            else:
+                errorMessage.showerror("Error", "Fields are Empties or Wrong format")
+                pass
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> save_clock_data ")
+            pass
+    
+    def load_clock_data(self):
+        try:
+            clock_Data = None
+            query = "SELECT * FROM timeClock"
+            userdata = self.run_dataBase(self.db_clockTime,query).fetchone()
+            if(userdata):
+                clock_in,break_in,break_out,clock_out = userdata
+
                 #Clock_in - Split get Hour minute second
                 clock_in_hour,clock_in_minute,clock_in_seconds = clock_in.split(":")
                 #Break_in - Split get Hour minute second
@@ -627,28 +649,6 @@ class TLDClock():
 
                 #Data Time
                 clock_Data = [clockIn,breakIn,breakOut,clockOut]
-            
-                #Creat Pickle Documet
-                userData = open(resource_path("db\\clockinfo.pckl"),"wb")
-                pickle.dump(clock_Data,userData)
-                self.frame2.pack_forget()
-                time.sleep(1)
-                self.frame_Sencond()
-                # self.restart()
-
-            else:
-                errorMessage.showerror("Error", "Fields are Empties or Wrong format")
-                pass
-        except Exception as e:
-            print(f"Error: {type(e).__name__} -> save_clock_data ")
-            pass
-    
-    def load_clock_data(self):
-        try:
-            clock_Data = None
-            userdata = open(resource_path("db\\clockinfo.pckl"),"rb")
-            if(userdata):
-                clock_Data = pickle.load(userdata)
                 return clock_Data
             else:
                 return clock_Data
@@ -664,7 +664,9 @@ class TLDClock():
             result = errorMessage.askquestion("Clean","Do you want to clean all fields?")
 
             if(result):
-                os.remove(resource_path("db\\clockinfo.pckl"))
+                #Query
+                query = "DELETE FROM timeClock"
+                self.run_dataBase(self.db_clockTime,query)
                 time.sleep(1)
                 self.frame_time()
             else:
@@ -753,58 +755,68 @@ class TLDClock():
     """ - - - - """
 
     #Records
-    def save_records(self,records):
+    def save_records(self,records_name,record_value):
         try:
-            data = open(resource_path("db\\records.pckl"), "wb")
-
-            self.data_records.append(records)
-            #Saving data
-            pickle.dump(self.data_records,data)
+            # self.data_records.append({"Name":records_name,"Value":record_value})
+            #Data Base
+            query = "INSERT into records VALUES (?,?)"
+            parameters = (records_name,record_value)
+            self.run_dataBase(self.db_records,query,parameters)
+            
         except Exception as e:
             print(f"Error: {type(e).__name__} -> save_records")
             pass
+    
+    def load_records(self):
+        try:
+            #dataBase
+            query = "SELECT * FROM records"
+            records = self.run_dataBase(self.db_records,query).fetchall()
+            return records
+        except sqlite3.OperationalError:
+            pass
+        except Exception as e:
+            print(f"Error Loading records: {type(e).__name__}")
+            pass
+
 
     def show_records(self):
         try:
-            data = open(resource_path("db\\records.pckl"),"rb")
-            records = pickle.load(data)
-            self.data_records = records
             
-            if(data):
-    
+            records = self.load_records()
+          
+            if(records):
+                
                 if(len(records) == 1):
-                    self.clockIn_message = records[0]["Clock_In"]
+                    self.clockIn_message = records[0][1]
                 else:
                     self.clockIn_message = "No records Yet"
 
                 if(len(records) == 2):
-                    self.clockIn_message = records[0]["Clock_In"]
-                    self.breakIn_message = records[1]["Break_In"]
+                    self.clockIn_message = records[0][1]
+                    self.breakIn_message = records[1][1]
                 else:
                     self.breakIn_message = "No records Yet"
                 
                 if(len(records) == 3):
-                    self.clockIn_message = records[0]["Clock_In"]
-                    self.breakIn_message = records[1]["Break_In"]
-                    self.breakOut_message = records[2]["Break_Out"]
+                    self.clockIn_message = records[0][1]
+                    self.breakIn_message = records[1][1]
+                    self.breakOut_message = records[2][1]
                 else:
                     self.breakOut_message = "No records Yet"
                 
                 if(len(records) == 4):
-                    self.clockIn_message = records[0]["Clock_In"]
-                    self.breakIn_message = records[1]["Break_In"]
-                    self.breakOut_message = records[2]["Break_Out"]
-                    self.clockOut_message = records[3]["Clock_Out"]
+                    self.clockIn_message = records[0][1]
+                    self.breakIn_message = records[1][1]
+                    self.breakOut_message = records[2][1]
+                    self.clockOut_message = records[3][1]
                 else:
                     self.clockOut_message = "No records Yet"
             else:
-                pass
-        except FileNotFoundError:
-            self.clockIn_message = "No records Yet"
-            self.breakIn_message = "No records Yet"
-            self.breakOut_message = "No records Yet"
-            self.clockOut_message = "No records Yet"
-            pass
+                self.clockIn_message = "No records Yet"
+                self.breakIn_message = "No records Yet"
+                self.breakOut_message = "No records Yet"
+                self.clockOut_message = "No records Yet"
         except Exception as e:
             print(f"Error: {type(e).__name__} -> show_records")
             pass
@@ -834,9 +846,10 @@ class TLDClock():
             today_minute == clock_in["minutes"] and 
             today_second == clock_in["seconds"]):
                 # self.tld_clockIn.startConnection()
+                records_name = "Clock In"
                 self.clockIn_message = self.tld_clockIn.clockTime()
                 self.active_clockIn_message = True
-                self.save_records({"Clock_In":self.clockIn_message})
+                self.save_records(records_name,self.clockIn_message)
                 time.sleep(1)
                 self.frame_Sencond()     
             
@@ -844,9 +857,10 @@ class TLDClock():
            today_minute == break_in["minutes"] and 
            today_second == break_in["seconds"]):
                 # self.tld_breakIn.startConnection()
+                records_name = "Break In"
                 self.breakIn_message = self.tld_breakIn.clockTime()
                 self.active_breakIn_message = True
-                self.save_records({"Break_In":self.breakIn_message})
+                self.save_records(records_name,self.breakIn_message)
                 time.sleep(1)
                 self.frame_Sencond()
 
@@ -854,9 +868,10 @@ class TLDClock():
             today_minute == break_out["minutes"] and 
             today_second == break_out["seconds"]):
                 # self.tld_breakOut.startConnection()
+                records_name = "Break Out"
                 self.breakOut_message = self.tld_breakOut.clockTime()
                 self.active_breakOut_message = True
-                self.save_records({"Break_Out":self.breakOut_message})
+                self.save_records(records_name,self.breakOut_message)
                 time.sleep(1)
                 self.frame_Sencond()
              
@@ -864,14 +879,15 @@ class TLDClock():
            today_minute == clock_out["minutes"] and 
            today_second == clock_out["seconds"]):
                 # self.tld_clockOut.startConnection()
+                records_name = "Clock Out"
                 self.clockOut_message = self.tld_clockOut.clockTime()
                 self.active_clockOut_message = True
-                self.save_records({"Clock_Out":self.clockOut_message})
+                self.save_records(records_name,self.clockOut_message)
                 time.sleep(1)
                 self.frame_Sencond()
                 
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error CheckTime: {type(e).__name__}")
             pass
 
     #Help Frame
@@ -909,14 +925,16 @@ class TLDClock():
     #Records More than 4, trying to clear records and avoid any king of mistake
     def check_records(self):
         try:
-            data = open(resource_path("db\\records.pckl"), "rb")
-            records = pickle.load(data)
-            records.clear()
-            #2.1 Saving it
-            new_Data = open(resource_path("db\\records.pckl"),"wb")
-            pickle.dump(records,new_Data)
+            records = self.load_records()
+            if(len(records) == 4):
+                query = "DELETE FROM records"
+                self.run_dataBase(self.db_records,query)
+            else:
+                pass
+        except TypeError:
+            pass
         except Exception as e:
-            print(type(e).__name__)
+            print(f"Error Check_records : {type(e).__name__}")
             pass
 
     #Restart APP          
