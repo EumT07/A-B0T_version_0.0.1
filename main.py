@@ -75,12 +75,12 @@ class TLDClock():
         self.frameUser = Frame(self.window,bg="#2c2c2c",width=440,height=400)
         self.frameTime = Frame(self.window,bg="#2c2c2c",width=440,height=400)
         self.frameabout = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+        self.frameLoading = Frame(self.window,bg="#2c2c2c",width=440,height=400)
 
         #Img
         self.logo = PhotoImage(file=resource_path("img\\logo.PNG"))
         #Container Time inside frame2
         self.container = LabelFrame(self.frame2, text="Time",padx=5,pady=5)
-
         #User Icon
         self.user_icon = PhotoImage(file=resource_path("img\\userIcon.PNG"))
 
@@ -90,6 +90,8 @@ class TLDClock():
         current_hour.grid(row=2,column=0,padx=5,pady=2,sticky=W)
         self.showHour = Label(self.container)
         
+
+
         #Show first intro
         self.frame_Principal()
         #Creatign Data Bases Tables
@@ -131,6 +133,7 @@ class TLDClock():
             self.frameUser.pack_forget()
             self.frameTime.pack_forget()
             self.frameabout.pack_forget()
+            self.frameLoading.pack_forget()
         except Exception as e:
             print(f"Error: {type(e).__name__} -> hide_menu_frames ")
             pass
@@ -143,6 +146,7 @@ class TLDClock():
 
             #Menu options
             menuBar.add_command(label="Clock",command=self.frame_Sencond)
+            menuBar.add_command(label="bar",command=self.loading_progressBar)
 
             #Settings - options
             settings = Menu(menuBar,tearoff=0)
@@ -392,7 +396,7 @@ class TLDClock():
             save_btn.grid(row=0,column=0,columnspan=2,padx=4)
 
             #Update Button
-            update_btn = Button(frameBtn,text="Edit")
+            update_btn = Button(frameBtn,text="Edit",command=lambda:self.update_user_info(userInfo,save_btn,update_btn,clean_btn,test_btn))
             update_btn.config(bg="#7f7f7f",fg="#fff",padx=10,pady=10,state="disabled")
             update_btn.grid(row=0,column=2,columnspan=2,padx=4)
 
@@ -435,7 +439,7 @@ class TLDClock():
                     
     def save_user(self,email,password):
         try:
-            user = {"email":email,"password":password,"active": True}
+            user = {"email":email,"password":password}
             if(user["email"] and user["password"]):
                 # Create data base sql3
                 query = "INSERT INTO user VALUES(?,?)"
@@ -468,9 +472,49 @@ class TLDClock():
             print(f"Error: {type(e).__name__} -> load_user_info")
             pass
 
-    def update_user_info(self,):
-        pass
-        
+    def update_user_info(self,userInfo,save_btn,update_btn,clean_btn,test_btn):
+
+        try:
+            #Getting user
+            user = self.load_user_info()
+
+            #Updating new data
+            #Email
+            newEmail_entry = Entry(userInfo,width=25,textvariable=StringVar(userInfo,user["email"]),state="normal")
+            newEmail_entry.grid(row=0,column=1)
+
+            #Password
+            newPassword_entry = Entry(userInfo,width=25,textvariable=StringVar(userInfo,user["password"]),state="normal")
+            newPassword_entry.config(justify="left",show="*")
+            newPassword_entry.grid(row=1,column=1)
+
+            #Button
+            save_btn.config(bg="#83c333",state="normal",command=lambda:self.save_updated_user(newEmail_entry.get(),newPassword_entry.get()))
+            update_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
+            test_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
+            clean_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> update_user_info")
+            pass
+
+    def save_updated_user(self,new_email,new_password):
+        try:
+            #Upadating the new data
+            user = {"email":new_email,"password":new_password}
+            if(not(user["email"] == "") and not(user["password"] == "")):
+                #Run Sqlite3
+                query = "UPDATE user SET email = ?, password = ?"
+                parameters = (new_email,new_password)
+                self.run_dataBase(self.db_user,query,parameters)
+                time.sleep(1)
+                self.frame_Sencond()
+            else:
+                errorMessage.showerror("Error", "Fields are Empties")
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> save_updated_user")
+            pass
+        pass 
+    
     def clean_user_info(self):
         
         #Delete file
@@ -561,7 +605,7 @@ class TLDClock():
             save_btn.grid(row=0,column=0,columnspan=2,padx=6)
 
             #Update Button
-            update_btn = Button(frameBtn,text="Edit",padx=15,pady=10)
+            update_btn = Button(frameBtn,text="Edit",padx=15,pady=10,command=lambda:self.update_clock_data(timer_settings,save_btn,update_btn,clean_btn))
             update_btn.grid(row=0,column=2,columnspan=2,padx=6)
 
             # Clean Button
@@ -623,9 +667,9 @@ class TLDClock():
     def save_clock_data(self,clock_in,break_in,break_out,clock_out):
         try:
             if(not(clock_in == "" or len(clock_in) < 8) and 
-            not(break_in == "" or len(clock_in) < 8) and 
-            not(break_out == "" or len(clock_in) < 8) and 
-            not(clock_out == "" or len(clock_in) < 8)):
+            not(break_in == "" or len(break_in) < 8) and 
+            not(break_out == "" or len(break_out) < 8) and 
+            not(clock_out == "" or len(clock_out) < 8)):
                 #DAta
                 clock_Data = [clock_in,break_in,break_out,clock_out]
                 #Creat Pickle Documet
@@ -683,9 +727,64 @@ class TLDClock():
             print(f"Error: {type(e).__name__} -> load_clock_data ")
             pass
 
-    def update_clock_data(self):
-        pass
+    def update_clock_data(self,timer_settings,save_btn,update_btn,clean_btn):
+        try:
+            #Getting data
+            clock_Data = self.load_clock_data()
 
+            #Clock_in Entry
+            clockIn_time = f"{clock_Data[0]['hour']}:{clock_Data[0]['minutes']}:{clock_Data[0]['seconds']}"
+            clock_in = Entry(timer_settings,width=8,textvariable=StringVar(timer_settings,clockIn_time),state="normal")
+            clock_in.grid(row=0,column=1)
+
+            #Break in Entry
+            breakIn_time = f"{clock_Data[1]['hour']}:{clock_Data[1]['minutes']}:{clock_Data[1]['seconds']}"
+            break_in = Entry(timer_settings,width=8,textvariable=StringVar(timer_settings,breakIn_time),state="normal")
+            break_in.grid(row=1,column=1)
+
+            #break out entry
+            breakOut_time = f"{clock_Data[2]['hour']}:{clock_Data[2]['minutes']}:{clock_Data[2]['seconds']}"
+            break_out = Entry(timer_settings,width=8,textvariable=StringVar(timer_settings,breakOut_time),state="normal")
+            break_out.grid(row=2,column=1,sticky=W)
+
+            #Clock_Out Entry
+            clockOut_time = f"{clock_Data[3]['hour']}:{clock_Data[3]['minutes']}:{clock_Data[3]['seconds']}"
+            clock_out = Entry(timer_settings,width=8,textvariable=StringVar(timer_settings,clockOut_time),state="normal")
+            clock_out.grid(row=3,column=1)
+
+            #Buttons
+            #Buttons
+            save_btn.config(bg="#83c333",fg="#fff",state="normal",command=lambda:self.save_newClock_data(clock_in.get(),break_in.get(),break_out.get(),clock_out.get()))
+            update_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
+            clean_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
+
+
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> update_clock_data")
+            pass 
+    
+    def save_newClock_data(self,clock_in,break_in,break_out,clock_out):
+        try:
+            if(not(clock_in == "" or len(clock_in) < 8) and 
+            not(break_in == "" or len(break_in) < 8) and 
+            not(break_out == "" or len(break_out) < 8) and 
+            not(clock_out == "" or len(clock_out) < 8)):
+                #Time Data
+                clock_Data = [clock_in,break_in,break_out,clock_out]
+                #run data base
+                query = "UPDATE timeClock SET time_clockIn = ?, time_breakIn = ?, time_breakOut = ?, time_clockOut = ?"
+                parameters = tuple(clock_Data)
+                self.run_dataBase(self.db_clockTime,query,parameters)
+                time.sleep(1)
+                self.frame_Sencond()
+                
+            else:
+                errorMessage.showerror("Error", "Fields are Empties or Wrong format")
+                pass
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> save_newClock_data ")
+            pass
+        
     def clean_clock_data(self):
         #Delete file
         try:
@@ -727,127 +826,6 @@ class TLDClock():
             print(f"Error: {type(e).__name__} -> digitalClock")
             pass  
     
-    """There is a little bit issue with the code, I'm getting an issue with the counter, when I save user or hours time data, and the bot starts to do its task the counter starts to add x2 the counter number, I don't know if there is a problem with the loops. I'll leave the code while I try to resolve it and be able to add a counter to the app."""
-    
-    def digital_counter(self):
-        try:
-            #Add 1
-            if(self.running):
-                self.second += 1
-                if(self.second == 60):
-                    self.minute += 1
-                    self.second = 0
-                    if(self.minute >= 59):
-                        self.hour += 1
-                        self.minute = 0
-                        if(self.hour >= 8):
-                            #Counter
-                            current_time = f"{self.hour} : {self.minute} : {self.second}"
-                            self.counter.config(text=current_time,bg="#83c333",fg="#ff0000")
-                            self.counter.grid(row=1,column=0,columnspan=4,padx=100,pady=40)
-        
-            current_time = f"{self.hour} : {self.minute} : {self.second}"
-            self.counter.config(text=current_time,bg="#83c333",fg="#fff") 
-            self.counter.grid(row=1,column=0,columnspan=4,padx=100,pady=40)    
-        
-            self.counter.after(1000,self.digital_counter)
-        except Exception as e:
-            print(type(e).__name__)
-
-    def reset_counter(self):
-        try:
-            self.hour = 0
-            self.minute = 0
-            self.second = 0
-            return
-        except Exception as e:
-            print(type(e).__name__)
-
-    def start_digital_counter(self):
-        try:
-            # self.running = True
-            today_text = time.strftime("%H:%M:%S")
-            print(f"Bamboohr Bot start at: {today_text} ")
-            return
-        except Exception as e:
-            print(type(e).__name__)
-
-    def stop_digital_counter(self):
-        try:
-            # self.running = False
-            today_text = time.strftime("%H:%M:%S")
-            print(f"Bamboohr Bot Stop at: {today_text} ")
-            return
-        except Exception as e:
-            print(type(e).__name__)
-    """ - - - - """
-
-    #Records
-    def save_records(self,records_name,record_value):
-        try:
-            # self.data_records.append({"Name":records_name,"Value":record_value})
-            #Data Base
-            query = "INSERT into records VALUES (?,?)"
-            parameters = (records_name,record_value)
-            self.run_dataBase(self.db_records,query,parameters)
-            
-        except Exception as e:
-            print(f"Error: {type(e).__name__} -> save_records")
-            pass
-    
-    def load_records(self):
-        try:
-            #dataBase
-            query = "SELECT * FROM records"
-            records = self.run_dataBase(self.db_records,query).fetchall()
-            return records
-        except sqlite3.OperationalError:
-            pass
-        except Exception as e:
-            print(f"Error Loading records: {type(e).__name__}")
-            pass
-
-    def show_records(self):
-        try:
-            
-            records = self.load_records()
-          
-            if(records):
-                
-                if(len(records) == 1):
-                    self.clockIn_message = records[0][1]
-                else:
-                    self.clockIn_message = "No records Yet"
-
-                if(len(records) == 2):
-                    self.clockIn_message = records[0][1]
-                    self.breakIn_message = records[1][1]
-                else:
-                    self.breakIn_message = "No records Yet"
-                
-                if(len(records) == 3):
-                    self.clockIn_message = records[0][1]
-                    self.breakIn_message = records[1][1]
-                    self.breakOut_message = records[2][1]
-                else:
-                    self.breakOut_message = "No records Yet"
-                
-                if(len(records) == 4):
-                    self.clockIn_message = records[0][1]
-                    self.breakIn_message = records[1][1]
-                    self.breakOut_message = records[2][1]
-                    self.clockOut_message = records[3][1]
-                else:
-                    self.clockOut_message = "No records Yet"
-            else:
-                self.clockIn_message = "No records Yet"
-                self.breakIn_message = "No records Yet"
-                self.breakOut_message = "No records Yet"
-                self.clockOut_message = "No records Yet"
-        except Exception as e:
-            print(f"Error: {type(e).__name__} -> show_records")
-            pass
-      
     #Start Bot-App   
     def check_time(self):
         try:
@@ -917,6 +895,73 @@ class TLDClock():
             print(f"Error CheckTime: {type(e).__name__}")
             pass
 
+    #Records
+    def save_records(self,records_name,record_value):
+        try:
+            # self.data_records.append({"Name":records_name,"Value":record_value})
+            #Data Base
+            query = "INSERT into records VALUES (?,?)"
+            parameters = (records_name,record_value)
+            self.run_dataBase(self.db_records,query,parameters)
+            
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> save_records")
+            pass
+    
+    def load_records(self):
+        try:
+            #dataBase
+            query = "SELECT * FROM records"
+            records = self.run_dataBase(self.db_records,query).fetchall()
+            return records
+        except sqlite3.OperationalError:
+            pass
+        except Exception as e:
+            print(f"Error Loading records: {type(e).__name__}")
+            pass
+
+    def show_records(self):
+        try:
+            
+            records = self.load_records()
+          
+            if(records):
+                
+                if(len(records) == 1):
+                    self.clockIn_message = records[0][1]
+                else:
+                    self.clockIn_message = "No records Yet"
+
+                if(len(records) == 2):
+                    self.clockIn_message = records[0][1]
+                    self.breakIn_message = records[1][1]
+                else:
+                    self.breakIn_message = "No records Yet"
+                
+                if(len(records) == 3):
+                    self.clockIn_message = records[0][1]
+                    self.breakIn_message = records[1][1]
+                    self.breakOut_message = records[2][1]
+                else:
+                    self.breakOut_message = "No records Yet"
+                
+                if(len(records) == 4):
+                    self.clockIn_message = records[0][1]
+                    self.breakIn_message = records[1][1]
+                    self.breakOut_message = records[2][1]
+                    self.clockOut_message = records[3][1]
+                else:
+                    self.clockOut_message = "No records Yet"
+            else:
+                self.clockIn_message = "No records Yet"
+                self.breakIn_message = "No records Yet"
+                self.breakOut_message = "No records Yet"
+                self.clockOut_message = "No records Yet"
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> show_records")
+            pass
+      
+
     #Help Frame
     def manual(self):
         pass
@@ -963,6 +1008,41 @@ class TLDClock():
         except Exception as e:
             print(f"Error Check_records : {type(e).__name__}")
             pass
+    
+    def loading_progressBar(self):
+        try:
+            #Clean screen
+            self.hide_menu_frames()
+            self.frameLoading.pack(fill="both",expand=1)
+
+            #Image logo
+            image = Label(self.frameLoading,image=self.logo)
+            image.config(bg="#2c2c2c")
+            image.pack(side="top",pady=40)
+
+            def step():
+                for i in range(5):
+                    self.frameLoading.update_idletasks()
+                    progresBar['value'] += 20
+                    time.sleep(1)
+                    txt['text']= f"{progresBar['value']}%"
+            
+            #Widget
+            progresBar = ttk.Progressbar(self.frameLoading,orient="horizontal",length=250,mode="determinate")
+            progresBar.pack(side="top",pady=60)
+
+            #Widget text
+            txt = Label(self.frameLoading,text="0%",bg="#2c2c2c",fg="#fff")
+            txt.pack(side="top",pady=60)
+
+            time.sleep(1)
+            step()
+
+            pass
+        except Exception as e:
+            print(f"Error Check_records : {type(e).__name__}")
+            pass
+
 
     #Restart APP          
     def restart(self):
@@ -972,7 +1052,7 @@ class TLDClock():
             os.startfile(resource_path("A-B0T.exe"))
         except Exception as e:
             errorMessage.showwarning("Error",f"Path Erro: {type(e).__name__}")
-            print(type(e).__name__)
+            
         
 
 if __name__ == "__main__":
