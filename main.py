@@ -75,7 +75,7 @@ class TLDClock():
         self.frameUser = Frame(self.window,bg="#2c2c2c",width=440,height=400)
         self.frameTime = Frame(self.window,bg="#2c2c2c",width=440,height=400)
         self.frameabout = Frame(self.window,bg="#2c2c2c",width=440,height=400)
-        self.frameLoading = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+        
 
         #Img
         self.logo = PhotoImage(file=resource_path("img\\logo.PNG"))
@@ -93,12 +93,21 @@ class TLDClock():
 
 
         #Show first intro
-        self.frame_Principal()
+        # self.frame_Principal()
+        self.loading_progressBar()
         #Creatign Data Bases Tables
         self.create_DataBase(self.db_user,self.query_user)
         self.create_DataBase(self.db_records,self.query_records)
         self.create_DataBase(self.db_clockTime,self.query_clockTime)
 
+    #Internet
+    def check_internet_connection(self):
+        try:
+            requests.get("https://www.google.com", timeout=3)
+            return True
+        except Exception as e:
+            return False
+        
     #Data Base sqlite3
     def create_DataBase(self,dbName,query):
         """Create Tables"""
@@ -133,7 +142,6 @@ class TLDClock():
             self.frameUser.pack_forget()
             self.frameTime.pack_forget()
             self.frameabout.pack_forget()
-            self.frameLoading.pack_forget()
         except Exception as e:
             print(f"Error: {type(e).__name__} -> hide_menu_frames ")
             pass
@@ -146,7 +154,6 @@ class TLDClock():
 
             #Menu options
             menuBar.add_command(label="Clock",command=self.frame_Sencond)
-            menuBar.add_command(label="bar",command=self.loading_progressBar)
 
             #Settings - options
             settings = Menu(menuBar,tearoff=0)
@@ -181,14 +188,6 @@ class TLDClock():
         except Exception as e:
             print(f"Error: {type(e).__name__} -> menu")
             pass
-    
-    #Internet
-    def check_internet_connection(self):
-        try:
-            requests.get("https://www.google.com", timeout=3)
-            return True
-        except Exception as e:
-            return False
     
     #Frame 1
     def frame_Principal(self):
@@ -359,6 +358,7 @@ class TLDClock():
     def frame_user(self):
         try:
             self.hide_menu_frames()
+            
             self.frameUser.pack(fill="both",expand=1)
 
             #Getting user
@@ -445,9 +445,8 @@ class TLDClock():
                 query = "INSERT INTO user VALUES(?,?)"
                 parameters = (email,password)
                 self.run_dataBase(self.db_user,query,parameters)
-                self.frame2.pack_forget()
+                
                 time.sleep(1)
-                self.frame_Sencond()
                 # self.restart()
             else:
                 errorMessage.showerror("Error", "Fields are Empties")
@@ -528,7 +527,6 @@ class TLDClock():
                 query = "DELETE FROM user WHERE email = ?"
                 self.run_dataBase(self.db_user,query,(userEmail,))
                 time.sleep(1)
-                self.frame_user()
             else:
                 time.sleep(1)
                 self.frame_user()
@@ -961,7 +959,6 @@ class TLDClock():
             print(f"Error: {type(e).__name__} -> show_records")
             pass
       
-
     #Help Frame
     def manual(self):
         pass
@@ -1013,36 +1010,49 @@ class TLDClock():
         try:
             #Clean screen
             self.hide_menu_frames()
+            self.frameLoading = Frame(self.window,bg="#2c2c2c",width=440,height=400)
             self.frameLoading.pack(fill="both",expand=1)
 
             #Image logo
             image = Label(self.frameLoading,image=self.logo)
             image.config(bg="#2c2c2c")
-            image.pack(side="top",pady=40)
-
+            image.pack(side="top",pady=30)
+            time.sleep(1)
             def step():
-                for i in range(5):
+                for i in range(10):
                     self.frameLoading.update_idletasks()
-                    progresBar['value'] += 20
+                    progresBar['value'] += 10
                     time.sleep(1)
-                    txt['text']= f"{progresBar['value']}%"
+                    text_value = "Loading", round(progresBar['value']),"%"
+                    text.config(text=text_value)
             
+            #Widget messge
+            message_text = "Please wait ultil app load all features"
+            message = Label(self.frameLoading,text=message_text,bg="#2c2c2c",fg="#fff")
+            message.pack(pady=5)
             #Widget
-            progresBar = ttk.Progressbar(self.frameLoading,orient="horizontal",length=250,mode="determinate")
-            progresBar.pack(side="top",pady=60)
+            progresBar = ttk.Progressbar(self.frameLoading,orient="horizontal",length=260,mode="determinate")
+            progresBar.pack(side="top",pady=10)
 
             #Widget text
-            txt = Label(self.frameLoading,text="0%",bg="#2c2c2c",fg="#fff")
-            txt.pack(side="top",pady=60)
-
+            text = Label(self.frameLoading,text="0%",bg="#2c2c2c",fg="#fff")
+            text.pack(padx=20,pady=10)
+            
             time.sleep(1)
             step()
 
+            image.pack_forget()
+            progresBar.pack_forget()
+            message.pack_forget()
+            text.pack_forget()
+            self.frameLoading.pack_forget()
+            self.frameLoading.destroy()
+            time.sleep(1)
+            self.frame_Principal()
             pass
         except Exception as e:
-            print(f"Error Check_records : {type(e).__name__}")
+            print(f"Error Loading_progres bas : {type(e).__name__}")
             pass
-
 
     #Restart APP          
     def restart(self):
