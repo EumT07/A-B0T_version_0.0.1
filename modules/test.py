@@ -7,6 +7,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 import time
 
 class Test():
+    """Propierties"""
     url= "https://languagedoctors.bamboohr.com/login.php?r=%2Fhome"
     loginError = None
     def __init__(self,email,password):
@@ -14,6 +15,7 @@ class Test():
         self.password = password
 
     def startConnection(self):
+        """This code run the scripts"""
         try:
             driver = webdriver.Chrome()
             driver.implicitly_wait(10)
@@ -27,10 +29,10 @@ class Test():
     def login(self,driver):
         try:
             driver.implicitly_wait(10)
-            #Email
+            #Email -> html id tag
             setEmail =  driver.find_element(By.ID, "lemail")
             setEmail.send_keys(self.email)
-            #password
+            #password -> html id tag
             setPassword =  driver.find_element(By.ID, 'password')
             setPassword.send_keys(self.password)
             #Login Button
