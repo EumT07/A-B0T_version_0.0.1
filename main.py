@@ -28,7 +28,8 @@ class TLDClock():
     query_user = """
     CREATE TABLE user(
         email VARCHAR(100) NOT NULL,
-        password VARCHAR(100) NOT NULL)"""
+        password VARCHAR(100) NOT NULL,
+        shift VARCHAR(100) NOT NULL)"""
     db_records = resource_path("db\\records.db")
     query_records ="""
     CREATE TABLE records(
@@ -58,7 +59,12 @@ class TLDClock():
     active_breakIn_message = False
     active_breakOut_message = False
     active_clockOut_message = False
-
+    #Frames
+    frameUser = None
+    frameTime = None
+    frame2 = None
+    showHour = None
+    
 
     def __init__(self,window):
         """Starting the app"""
@@ -72,26 +78,11 @@ class TLDClock():
 
         #Frames
         self.frame1 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
-        self.frame2 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
-        self.frameUser = Frame(self.window,bg="#2c2c2c",width=440,height=400)
-        self.frameTime = Frame(self.window,bg="#2c2c2c",width=440,height=400)
-        self.frameabout = Frame(self.window,bg="#2c2c2c",width=440,height=400)
         
-
         #Img
         self.logo = PhotoImage(file=resource_path("img\\logo.PNG"))
-        #Container Time inside frame2
-        self.container = LabelFrame(self.frame2, text="Time",padx=5,pady=5)
         #User Icon
         self.user_icon = PhotoImage(file=resource_path("img\\userIcon.PNG"))
-
-        #current_hour
-        current_hour = Label(self.container,text="Current Hour :")
-        current_hour.config(bg="#2c2c2c",fg="#fff")
-        current_hour.grid(row=2,column=0,padx=5,pady=2,sticky=W)
-        self.showHour = Label(self.container)
-        
-
 
         #Show first intro
         self.loading_progressBar()
@@ -143,6 +134,8 @@ class TLDClock():
             self.frameUser.pack_forget()
             self.frameTime.pack_forget()
             self.frameabout.pack_forget()
+        except AttributeError:
+            pass
         except Exception as e:
             print(f"Error: {type(e).__name__} -> hide_menu_frames ")
             pass
@@ -265,17 +258,26 @@ class TLDClock():
             #Date
 
             #Second frame
+            self.frame2 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
             self.frame2.pack(fill="both",expand=1)
 
             #Date Container
-            self.container.config(bg="#2c2c2c",fg="#fff")
-            self.container.grid(
+            #Container Time inside frame2
+            container = LabelFrame(self.frame2, text="Time",padx=5,pady=5)
+            container.config(bg="#2c2c2c",fg="#fff")
+            container.grid(
                 row=0,
                 column=1,
                 columnspan=1,
                 padx=25,
                 pady=10,
                 sticky=N+S)
+            
+            #current_hour
+            current_hour = Label(container,text="Current Hour :")
+            current_hour.config(bg="#2c2c2c",fg="#fff")
+            current_hour.grid(row=2,column=0,padx=5,pady=2,sticky=W)
+            self.showHour = Label(container)
         
             #Date
             today = datetime.now()
@@ -283,20 +285,20 @@ class TLDClock():
             day_name = today.strftime("%A")
 
             #Date LAbel
-            date = Label(self.container,text="Date : ")
+            date = Label(container,text="Date : ")
             date.config(bg="#2c2c2c",fg="#fff")
             date.grid(row=0,column=0,padx=5,pady=2,sticky=W)
 
-            date_text = Label(self.container,text=date_time)
+            date_text = Label(container,text=date_time)
             date_text.config(bg="#2c2c2c",fg="#fff")
             date_text.grid(row=0,column=1,padx=2,pady=2,sticky=W)
 
             #Day Label
-            day = Label(self.container,text="Day : ",bg="#2c2c2c")
+            day = Label(container,text="Day : ",bg="#2c2c2c")
             day.config(bg="#2c2c2c",fg="#fff")
             day.grid(row=1,column=0,padx=5,pady=2,sticky=W)
 
-            day_text = Label(self.container,text=day_name)
+            day_text = Label(container,text=day_name)
             day_text.config(bg="#2c2c2c",fg="#fff")
             day_text.grid(row=1,column=1,padx=2,pady=4,sticky=W)
 
@@ -397,7 +399,8 @@ class TLDClock():
     #Settings : user
     def frame_user(self):
         try:
-            self.hide_frames()   
+            self.hide_frames()
+            self.frameUser = Frame(self.window,bg="#2c2c2c",width=440,height=400) 
             self.frameUser.pack(fill="both",expand=1)
 
             #Getting user info
@@ -406,29 +409,37 @@ class TLDClock():
             #Image logo
             image = Label(self.frameUser,image=self.user_icon)
             image.config(bg="#2c2c2c")
-            image.grid(row=0,column=0,columnspan=4,padx=100,pady=20,sticky=N+S)
+            image.grid(row=0,column=0,columnspan=4,padx=100,pady=15,sticky=N+S)
 
             #Framer user
             userInfo = LabelFrame(self.frameUser,text="User Info",padx=5,pady=5)
             userInfo.config(bg="#2c2c2c",fg="#fff",font=("Adobe Garamond Pro",10,"bold"))
-            userInfo.grid(row=1,column=0,columnspan=4,padx=100,pady=30,sticky=N)
+            userInfo.grid(row=1,column=0,columnspan=4,padx=100,pady=10,sticky=N)
         
             # Lables
             #Email
-            email_Label= Label(userInfo,text="Email :",padx=5,pady=10)
+            email_Label= Label(userInfo,text="Email :",padx=5,pady=8)
             email_Label.config(
                 bg="#2c2c2c",
                 fg="#fff",
                 font=("Adobe Garamond Pro",10,"bold"))
             email_Label.grid(row=0,column=0,sticky=W)
             #Password
-            password_Label = Label(userInfo,text="Password :",padx=5,pady=10)
+            password_Label = Label(userInfo,text="Password :",padx=5,pady=8)
             password_Label.config(
                 bg="#2c2c2c",
                 fg="#fff",
                 font=("Adobe Garamond Pro",10,"bold"))
             password_Label.grid(row=1,column=0,sticky=W)
-
+            #Shift
+            shift_label = Label(userInfo,text="Shift :",padx=5,pady=8)
+            shift_label.config(
+                bg="#2c2c2c",
+                fg="#fff",
+                font=("Adobe Garamond Pro",10,"bold"))
+            shift_label.grid(row=2,column=0,sticky=W)
+            
+        
             #Frame buttons
             frameBtn = Frame(self.frameUser, width=450, height=40)
             frameBtn.config(bg="#2c2c2c")
@@ -436,7 +447,7 @@ class TLDClock():
 
             #Buttons
             #Save Button
-            save_btn = Button(frameBtn,text="Save",command=lambda:self.save_user(email.get(),password.get()))
+            save_btn = Button(frameBtn,text="Save")
             save_btn.config(bg="#83c333",fg="#fff",padx=10,pady=10)
             save_btn.grid(row=0,column=0,columnspan=2,padx=4)
 
@@ -470,6 +481,12 @@ class TLDClock():
                     textvariable=StringVar(userInfo,user["password"]),state="disable")
                 password.config(justify="left",show="*")
                 password.grid(row=1,column=1)
+                #DropMenu
+                shift_text = Label(userInfo,text=user["shift"])
+                shift_text.config(
+                    bg="#2c2c2c",
+                    fg="#fff",)
+                shift_text.grid(row=2,column=1)
                 #Button
                 save_btn.config(bg="#7f7f7f",state="disabled")
                 update_btn.config(bg="#83c333",fg="#fff",state="normal")
@@ -483,19 +500,33 @@ class TLDClock():
                 password = Entry(userInfo,width=25)
                 password.config(justify="left",show="*")
                 password.grid(row=1,column=1)
+                #DropMenu
+                shift_value = StringVar(value="Day")
+                shift_list = ["Day","Night"]
+                drop_menu = OptionMenu(userInfo,shift_value,*shift_list)
+                drop_menu.config(
+                    bg="#2c2c2c",
+                    fg="#fff",
+                    activebackground="#2c2c2c",
+                    activeforeground="#fff")
+                drop_menu.grid(row=2,column=1)
+                save_btn.config(command=lambda:self.save_user(email.get(),password.get(),shift_value.get()))
         except Exception as e:
             print(f"Error: {type(e).__name__} -> frame_user ")
             pass    
                     
-    def save_user(self,email,password):
+    def save_user(self,email,password,shift_value):
         try:
-            user = {"email":email,"password":password}
-            if(user["email"] and user["password"]):
+            user = {"email":email,"password":password,"Shift": shift_value}
+            print(user)
+            if(user["email"] and user["password"] and user["Shift"]):
                 # Insert data into user table sql3
-                query = "INSERT INTO user VALUES(?,?)"
-                parameters = (email,password)
+                query = "INSERT INTO user VALUES(?,?,?)"
+                parameters = (email,password,shift_value)
                 self.run_dataBase(self.db_user,query,parameters)
+                self.frame2.destroy()
                 time.sleep(1)
+                self.frame_user()
                 # self.restart()
             else:
                 errorMessage.showerror("Error", "Fields are Empties")
@@ -507,10 +538,10 @@ class TLDClock():
         try:
             user = None
             #Reading Data from user table
-            query = "SELECT email, password FROM user"
+            query = "SELECT email, password, shift FROM user"
             userdata = self.run_dataBase(self.db_user,query).fetchone()
             if(userdata):
-                user = {"email":userdata[0],"password":userdata[1]}
+                user = {"email":userdata[0],"password":userdata[1],"shift":userdata[2]}
                 return user
             else:
                 return user
@@ -541,13 +572,25 @@ class TLDClock():
             newPassword_entry.config(justify="left",show="*")
             newPassword_entry.grid(row=1,column=1)
 
+            #DropMenu
+            new_shift_value = StringVar(value=user["shift"])
+            shift_list = ["Day","Night"]
+            drop_menu = OptionMenu(userInfo,new_shift_value,*shift_list)
+            drop_menu.config(
+                bg="#2c2c2c",
+                fg="#fff",
+                activebackground="#2c2c2c",
+                activeforeground="#fff")
+            drop_menu.grid(row=2,column=1)
+
             #Button
             save_btn.config(
                 bg="#83c333",
                 state="normal",
                 command=lambda:self.save_updated_user(
                     newEmail_entry.get(),
-                    newPassword_entry.get()))
+                    newPassword_entry.get(),
+                    new_shift_value.get()))
             update_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
             test_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
             clean_btn.config(bg="#7f7f7f",fg="#fff",state="disabled")
@@ -555,17 +598,17 @@ class TLDClock():
             print(f"Error: {type(e).__name__} -> update_user_info")
             pass
 
-    def save_updated_user(self,new_email,new_password):
+    def save_updated_user(self,new_email,new_password,new_shift_value):
         try:
             #Savind new info
-            user = {"email":new_email,"password":new_password}
-            if(not(user["email"] == "") and not(user["password"] == "")):
+            user = {"email":new_email,"password":new_password,"Shift": new_shift_value}
+            if(not(user["email"] == "") and not(user["password"] == "") and not(user["Shift"] == "")):
                 #Run Sqlite3
-                query = "UPDATE user SET email = ?, password = ?"
-                parameters = (new_email,new_password)
+                query = "UPDATE user SET email = ?, password = ?, shift = ?"
+                parameters = (new_email,new_password,new_shift_value)
                 self.run_dataBase(self.db_user,query,parameters)
                 time.sleep(1)
-                self.frame_Sencond()
+                self.frame_user()
             else:
                 errorMessage.showerror("Error", "Fields are Empties")
         except Exception as e:
@@ -585,6 +628,7 @@ class TLDClock():
                 query = "DELETE FROM user WHERE email = ?"
                 self.run_dataBase(self.db_user,query,(userEmail,))
                 time.sleep(1)
+                self.frame_user()
             else:
                 time.sleep(1)
                 self.frame_user()
@@ -620,6 +664,7 @@ class TLDClock():
     def frame_time(self):
         try:
             self.hide_frames()
+            self.frameTime = Frame(self.window,bg="#2c2c2c",width=440,height=400)
             self.frameTime.pack(fill="both",expand=1)
 
             clock_Data = self.load_clock_data()
@@ -772,9 +817,9 @@ class TLDClock():
                 query = "INSERT INTO timeClock VALUES (?,?,?,?)"
                 parameters = tuple(clock_Data)
                 self.run_dataBase(self.db_clockTime,query,parameters)
-                self.frame2.pack_forget()
+                self.frame2.destroy()
                 time.sleep(1)
-                self.frame_Sencond()
+                self.frame_time()
                 # self.restart()
 
             else:
@@ -897,8 +942,7 @@ class TLDClock():
                 parameters = tuple(clock_Data)
                 self.run_dataBase(self.db_clockTime,query,parameters)
                 time.sleep(1)
-                self.frame_Sencond()
-                
+                self.frame_time()         
             else:
                 errorMessage.showerror("Error", "Fields are Empties or Wrong format")
                 pass
@@ -923,27 +967,73 @@ class TLDClock():
         except Exception as e:
             print(f"Error: {type(e).__name__} -> clean_clock_data ")
             pass
-       
+
+    #shift Logic
+    def shift(self):
+        try:
+            #Checking if there is weekend
+            day_name = time.strftime("%A")
+            #Days
+            friday = day_name.lower() == "friday"
+            saturday = day_name.lower() == "saturday"
+            sunday = day_name.lower() == "sunday"
+            #Weekend
+            weekend = saturday or sunday
+            #Get Hour Minute Seconds
+            today_hour = int(time.strftime("%H"))
+            today_minute = int(time.strftime("%M"))
+            today_second = int(time.strftime("%S"))
+            #variables to get shift value form user db
+            shift = ""
+
+            #Get shift
+            user = self.load_user_info()
+            if(user):
+                shift = user["shift"]
+
+            #Night shift Friday until 08 am
+            friday_Hour = today_hour >= 5 and today_minute >= 0 and today_second >= 10
+            #Night shift sunday from 20 pm
+            sunday_Hour = today_hour < 20 and today_minute >= 0 and today_second >= 0
+
+            if(shift.lower() == "day"):
+                if(not(weekend)):
+                    # self.check_time()
+                    print("Turno diurno activado")
+                else:
+                    print("Day shift: day off")
+              
+            if(shift.lower() == "night"):
+                if((friday and not(friday_Hour)) and not(saturday) and (sunday and not(sunday_Hour))):
+                    print("Turno nocturno activado")
+                    pass
+                else:
+                    print("Night shift: day off")
+
+        except Exception as e:
+            print(f"Error: {type(e).__name__} -> shift")
+            pass
+
     #Time-Clock-Counter
     def digitalClock(self):
         """Show a clock in order to watch the current time at the moment, when we get the current time, this code tries to figure out if the app is running on weekdays or weekends, in order to work without any issue depending on the daily shift or night shift."""
         try:
             today_text = time.strftime("%H:%M:%S")
-            #Checking if there is weekend
-            day_name = time.strftime("%A")
             
-            #Get Hours data
+            #Get Hours data and user info
             clockData = self.load_clock_data()
-            # weekend = day_name.lower() == "saturday" or day_name.lower() == "sunday"
-        
-            # if(not(weekend) and not(clockData == None)):
-            if(not(clockData == None)):
-                self.check_time()
-            
+            user = self.load_user_info()
+
+            if(not(user == None) and not(clockData == None)):
+                # self.shift()
+                pass
+
             #Labels
             self.showHour.config(text=today_text,bg="#2c2c2c",fg="#fff")
             self.showHour.grid(row=2,column=1,padx=2,pady=4,sticky=W)
             self.showHour.after(1000, self.digitalClock)
+        except TypeError:
+            pass
         except Exception as e:
             print(f"Error: {type(e).__name__} -> digitalClock")
             pass  
@@ -974,7 +1064,7 @@ class TLDClock():
             if(today_hour == clock_in["hour"] and 
             today_minute == clock_in["minutes"] and 
             today_second == clock_in["seconds"]):
-                self.tld_clockIn.startConnection()
+                # self.tld_clockIn.startConnection()
                 records_name = "Clock In"
                 self.clockIn_message = self.tld_clockIn.clockTime()
                 self.active_clockIn_message = True
@@ -985,7 +1075,7 @@ class TLDClock():
             if(today_hour == break_in["hour"] and 
            today_minute == break_in["minutes"] and 
            today_second == break_in["seconds"]):
-                self.tld_breakIn.startConnection()
+                # self.tld_breakIn.startConnection()
                 records_name = "Break In"
                 self.breakIn_message = self.tld_breakIn.clockTime()
                 self.active_breakIn_message = True
@@ -996,7 +1086,7 @@ class TLDClock():
             if(today_hour == break_out["hour"] and 
             today_minute == break_out["minutes"] and 
             today_second == break_out["seconds"]):
-                self.tld_breakOut.startConnection()
+                # self.tld_breakOut.startConnection()
                 records_name = "Break Out"
                 self.breakOut_message = self.tld_breakOut.clockTime()
                 self.active_breakOut_message = True
@@ -1007,7 +1097,7 @@ class TLDClock():
             if(today_hour == clock_out["hour"] and 
            today_minute == clock_out["minutes"] and 
            today_second == clock_out["seconds"]):
-                self.tld_clockOut.startConnection()
+                # self.tld_clockOut.startConnection()
                 records_name = "Clock Out"
                 self.clockOut_message = self.tld_clockOut.clockTime()
                 self.active_clockOut_message = True
@@ -1030,53 +1120,56 @@ class TLDClock():
             print(f"Error: {type(e).__name__} -> save_records")
             pass
     
-    def load_records(self):
+    def load_records_one_by_one(self,parameter):
         try:
             #dataBase
-            query = "SELECT * FROM records"
-            records = self.run_dataBase(self.db_records,query).fetchall()
+            query = f"SELECT * FROM records WHERE record_name = '{parameter}'"
+            records = self.run_dataBase(self.db_records,query).fetchone()
             return records
         except sqlite3.OperationalError:
             pass
         except Exception as e:
             print(f"Error Loading records: {type(e).__name__}")
             pass
+    
+    def len_records(self):
+        try:
+            #dataBase
+            query = f"SELECT * FROM records"
+            records = self.run_dataBase(self.db_records,query).fetchall()
+            return records
+        except sqlite3.OperationalError:
+            pass
+        except Exception as e:
+            print(f"Error len(Loading records): {type(e).__name__}")
 
     def show_records(self):
-        try: 
-            records = self.load_records()
-            if(records):
-                
-                if(len(records) == 1):
-                    self.clockIn_message = records[0][1]
-                else:
-                    self.clockIn_message = "No records Yet"
-
-                if(len(records) == 2):
-                    self.clockIn_message = records[0][1]
-                    self.breakIn_message = records[1][1]
-                else:
-                    self.breakIn_message = "No records Yet"
-                
-                if(len(records) == 3):
-                    self.clockIn_message = records[0][1]
-                    self.breakIn_message = records[1][1]
-                    self.breakOut_message = records[2][1]
-                else:
-                    self.breakOut_message = "No records Yet"
-                
-                if(len(records) == 4):
-                    self.clockIn_message = records[0][1]
-                    self.breakIn_message = records[1][1]
-                    self.breakOut_message = records[2][1]
-                    self.clockOut_message = records[3][1]
-                else:
-                    self.clockOut_message = "No records Yet"
+        try:
+            clockIn = self.load_records_one_by_one("Clock In")
+            breakIn = self.load_records_one_by_one("Break In")
+            breakOut = self.load_records_one_by_one("Break Out")
+            clockOut = self.load_records_one_by_one("Clock Out")
+  
+            if(clockIn):
+                self.clockIn_message = clockIn[1]
             else:
                 self.clockIn_message = "No records Yet"
+
+            if(breakIn):
+                self.breakIn_message = breakIn[1]
+            else:
                 self.breakIn_message = "No records Yet"
+                
+            if(breakOut):
+                self.breakOut_message = breakOut[1]
+            else:
                 self.breakOut_message = "No records Yet"
+                
+            if(clockOut):
+                self.clockOut_message = clockOut[1]
+            else:
                 self.clockOut_message = "No records Yet"
+            
         except Exception as e:
             print(f"Error: {type(e).__name__} -> show_records")
             pass
@@ -1091,6 +1184,7 @@ class TLDClock():
     def about_bot(self):
         try:
             self.hide_frames()
+            self.frameabout = Frame(self.window,bg="#2c2c2c",width=440,height=400)
             self.frameabout.pack(fill="both",expand=1)
         
             #Image logo
@@ -1107,7 +1201,7 @@ class TLDClock():
             link = Label(self.frameabout,text="\nSource Code")
             link.config(bg="#2c2c2c", fg="#1e90ff", cursor="hand2")
             link.pack()
-            link.bind("<Button-1>", lambda e: webbrowser.open(""))
+            link.bind("<Button-1>", lambda e: webbrowser.open("https://github.com/EumT07/A-B0T_version_0.0.1"))
         except Exception as e:
             print(type(e).__name__)
             pass
@@ -1116,13 +1210,14 @@ class TLDClock():
     def check_records(self):
         """Check if app got 4 records, and cleaning this data for the momemt, this helps to app works without any problems"""
         try:
-            records = self.load_records()
+            records = self.len_records()
             if(len(records) == 4):
                 query = "DELETE FROM records"
                 self.run_dataBase(self.db_records,query)
             else:
                 pass
         except TypeError:
+            print("Check string query")
             pass
         except Exception as e:
             print(f"Error Check_records : {type(e).__name__}")
@@ -1141,15 +1236,15 @@ class TLDClock():
             image.pack(side="top",pady=30)
             time.sleep(1)
             def step():
-                for i in range(10):
+                for i in range(5):
                     self.frameLoading.update_idletasks()
-                    progresBar['value'] += 10
+                    progresBar['value'] += 20
                     time.sleep(1)
                     text_value = "Loading", round(progresBar['value']),"%"
                     text.config(text=text_value)
             
             #Widget messge
-            message_text = "Please wait ultil app load all features"
+            message_text = "Please wait until the app load all the features"
             message = Label(
                 self.frameLoading,
                 text=message_text,
