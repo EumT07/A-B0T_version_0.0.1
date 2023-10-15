@@ -3,11 +3,12 @@ from tkinter import ttk, messagebox as errorMessage
 from datetime import datetime
 import sqlite3
 import time
-import os, subprocess, sys
+import os, sys
 import requests
 from modules.tld import *
 from modules.test import *
 import webbrowser
+from win10toast import ToastNotifier
 from dotenv import load_dotenv
 #Load .env data
 load_dotenv()
@@ -78,6 +79,9 @@ class TLDClock():
 
         #Frames
         self.frame1 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+        self.frame2 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+        self.frameabout = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+        
         
         #Img
         self.logo = PhotoImage(file=resource_path("img\\logo.PNG"))
@@ -85,7 +89,7 @@ class TLDClock():
         self.user_icon = PhotoImage(file=resource_path("img\\userIcon.PNG"))
 
         #Show first intro
-        self.loading_progressBar()
+        self.loading_app()
         #Creating Data Base Tables
         self.create_DataBase(self.db_user,self.query_user)
         self.create_DataBase(self.db_records,self.query_records)
@@ -131,10 +135,13 @@ class TLDClock():
     def hide_frames(self):
         try:
             self.frame2.pack_forget()
-            self.frameUser.pack_forget()
-            self.frameTime.pack_forget()
             self.frameabout.pack_forget()
+            if(not(self.frameUser == None)):
+                self.frameUser.pack_forget()
+            if(not(self.frameTime == None)):
+                self.frameTime.pack_forget()
         except AttributeError:
+            print("Error hide_frames atributos")
             pass
         except Exception as e:
             print(f"Error: {type(e).__name__} -> hide_menu_frames ")
@@ -173,13 +180,19 @@ class TLDClock():
             help.add_command(label="More info",state="disabled")
             #help: 2 contact
             help.add_command(label="Send feedback",state="disabled")
-            notifications = Menu(help,tearoff=0)
             #help: 3 Notificacions
+            notifications = Menu(help,tearoff=0)
             help.add_cascade(label="Notifications",menu=notifications)
             notifications.add_cascade(label="On",state="disabled")
             notifications.add_cascade(label="Off",state="disabled")
+            #help: 4 System
+            system = Menu(help,tearoff=0)
+            help.add_cascade(label="System",menu=system)
+            system.add_cascade(label="Reboot",command=self.reboot)
+            system.add_cascade(label="Factory Restore",command=self.factory_restore)
+            #Separator
             help.add_separator()
-            #help: 4 About -> A-B0T
+            #help: 5 About -> A-B0T
             help.add_command(label="About..",command=self.about_bot)
             
         except Exception as e:
@@ -191,7 +204,6 @@ class TLDClock():
         try:
             #Principal Frame
             self.frame1.pack(fill="both",expand=1)
-        
             #Image logo
             image = Label(self.frame1,image=self.logo)
             image.config(bg="#2c2c2c")
@@ -258,7 +270,6 @@ class TLDClock():
             #Date
 
             #Second frame
-            self.frame2 = Frame(self.window,bg="#2c2c2c",width=440,height=400)
             self.frame2.pack(fill="both",expand=1)
 
             #Date Container
@@ -847,7 +858,7 @@ class TLDClock():
                 #Clock_out
                 clock_out_hour,clock_out_minute,clock_out_seconds = clock_out.split(":")
         
-                """Creating Dictionaries in order to save info and be able to use them getting by their properties"""
+                """Creating Dictionaries in order to save info and be able to use them, getting by their properties"""
                 #Clock_in
                 clockIn = {"hour":int(clock_in_hour),"minutes":int(clock_in_minute),"seconds":int(clock_in_seconds)}
                 #break_in
@@ -1031,6 +1042,7 @@ class TLDClock():
             #Labels
             self.showHour.config(text=today_text,bg="#2c2c2c",fg="#fff")
             self.showHour.grid(row=2,column=1,padx=2,pady=4,sticky=W)
+            self.showHour.pack_forget()
             self.showHour.after(1000, self.digitalClock)
         except TypeError:
             pass
@@ -1184,7 +1196,6 @@ class TLDClock():
     def about_bot(self):
         try:
             self.hide_frames()
-            self.frameabout = Frame(self.window,bg="#2c2c2c",width=440,height=400)
             self.frameabout.pack(fill="both",expand=1)
         
             #Image logo
@@ -1205,7 +1216,44 @@ class TLDClock():
         except Exception as e:
             print(type(e).__name__)
             pass
+
+
+    def reboot(self):
+        try:
+            value = errorMessage.askokcancel("Reboot","Reboot will Delete data records and Start the app again.\n\nAre you sure to want to reboot the app?")
+
+            if(value):
+                #Delete all records data
+                query = "DELETE FROM records"
+                self.run_dataBase(self.db_records,query)
+                time.sleep(1)
+                message = "Please wait until the app finishes, don't close the app"
+                self.loading_progessBar(message)
+            else:
+                pass
+               
+        except Exception as e:
+            print(type(e).__name__)
         
+    def factory_restore(self):
+        try:
+            db_tables = ['user','records','timeClock']
+            db_files = [self.db_user,self.db_records,self.db_clockTime]
+
+            value = errorMessage.askokcancel("Factory Restore","Factory Restore will Delete all data (user info, time Clock info, records info) and Start the app again.\n\nAre you sure to want to reset Factory defaults?")
+
+            if(value):
+                for db in zip(db_files,db_tables):
+                    query = f"DELETE FROM {db[1]}"
+                    self.run_dataBase(db[0],query)
+                message = f"Please wait until Factory Restory ends, don't close the app"
+                self.loading_progessBar(message)  
+            else:
+                pass
+        except Exception as e:
+            print(type(e).__name__)
+        pass
+
     #Records More than 4, trying to clear records and avoid any king of mistake
     def check_records(self):
         """Check if app got 4 records, and cleaning this data for the momemt, this helps to app works without any problems"""
@@ -1223,7 +1271,7 @@ class TLDClock():
             print(f"Error Check_records : {type(e).__name__}")
             pass
     
-    def loading_progressBar(self):
+    def loading_app(self):
         try:
             #Clean screen
             self.hide_frames()
@@ -1279,16 +1327,71 @@ class TLDClock():
         except Exception as e:
             print(f"Error Loading_progres bas : {type(e).__name__}")
             pass
+    
+    def loading_progessBar(self,message = None):
+        try:
+            #Clean screen
+            self.hide_frames()
+            self.frameLoading = Frame(self.window,bg="#2c2c2c",width=440,height=400)
+            self.frameLoading.pack(fill="both",expand=1)
 
+            #Image logo
+            image = Label(self.frameLoading,image=self.logo)
+            image.config(bg="#2c2c2c")
+            image.pack(side="top",pady=30)
+            time.sleep(1)
+            def step():
+                for i in range(5):
+                    self.frameLoading.update_idletasks()
+                    progresBar['value'] += 20
+                    time.sleep(1)
+                    text_value = "Loading", round(progresBar['value']),"%"
+                    text.config(text=text_value)
+                    
+
+            message_label = Label(
+                self.frameLoading,
+                bg="#2c2c2c",
+                fg="#fff",
+                text=message)
+            message_label.pack(pady=5)
+            #Widget
+            progresBar = ttk.Progressbar(
+                self.frameLoading,
+                orient="horizontal",
+                length=260,
+                mode="determinate")
+            progresBar.pack(side="top",pady=10)
+
+            #Widget text
+            text = Label(self.frameLoading,text="0%",bg="#2c2c2c",fg="#fff")
+            text.pack(padx=20,pady=10)
+            
+            time.sleep(1)
+            step()
+
+            #This works -> but Not sure if it is necessary
+            image.pack_forget()
+            progresBar.pack_forget()
+            message_label.pack_forget()
+            text.pack_forget()
+            self.frameLoading.pack_forget()
+            self.frameLoading.destroy()
+            time.sleep(1)
+            self.restart()
+            pass
+        except Exception as e:
+            print(f"Error Loading_progres bas : {type(e).__name__}")
+            pass
     #Restart APP          
     def restart(self):
         """There is an issue, I haven't figured out yet, but the problem is when you save data and start the app when the app is running, it starts writing text on top of the previous text, I think the problem is when we try to delete or destroy the frame. So next code just close the app and start again to avoid this issue."""
         try:
             self.window.destroy()
             #Path with python/tkinter app when is running with cmd
-            # os.startfile("main.py")
+            os.startfile("main.py")
             #Path when this pass is a desktop app.
-            os.startfile(resource_path("A-B0T.exe"))
+            # os.startfile(resource_path("A-B0T.exe"))
         except Exception as e:
             errorMessage.showwarning("Error",f"Path Erro: {type(e).__name__}")
             
