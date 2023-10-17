@@ -45,7 +45,7 @@ class Test():
             #Error Login
             time.sleep(2)
             errorLogin = driver.find_element(By.CLASS_NAME,"fabric-1v6ecp0-text").text
-            
+            driver.implicitly_wait(10)
             if(errorLogin == "The email or password you entered is invalid."):
                 self.loginError = "Error: Wrong Email/password " 
                 time.sleep(1)
@@ -69,6 +69,7 @@ class Test():
         
     def quit(self,driver):
         try:
+            time.sleep(2)
             driver.close()
             return
         except Exception as e:

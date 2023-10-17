@@ -8,7 +8,6 @@ import requests
 from modules.tld import *
 from modules.test import *
 import webbrowser
-from win10toast import ToastNotifier
 from dotenv import load_dotenv
 #Load .env data
 load_dotenv()
@@ -181,10 +180,10 @@ class TLDClock():
             #help: 2 contact
             help.add_command(label="Send feedback",state="disabled")
             #help: 3 Notificacions
-            notifications = Menu(help,tearoff=0)
-            help.add_cascade(label="Notifications",menu=notifications)
-            notifications.add_cascade(label="On",state="disabled")
-            notifications.add_cascade(label="Off",state="disabled")
+            # notifications = Menu(help,tearoff=0)
+            # help.add_cascade(label="Notifications",menu=notifications)
+            # notifications.add_cascade(label="On",state="disabled")
+            # notifications.add_cascade(label="Off",state="disabled")
             #help: 4 System
             system = Menu(help,tearoff=0)
             help.add_cascade(label="System",menu=system)
@@ -326,7 +325,6 @@ class TLDClock():
                 padx=40,
                 pady=8,
                 sticky=N+S)
-    
 
             #Clock in 
             record_clockIn = Label(self.frame2, text="Clock In :")
@@ -529,16 +527,13 @@ class TLDClock():
     def save_user(self,email,password,shift_value):
         try:
             user = {"email":email,"password":password,"Shift": shift_value}
-            print(user)
             if(user["email"] and user["password"] and user["Shift"]):
                 # Insert data into user table sql3
                 query = "INSERT INTO user VALUES(?,?,?)"
                 parameters = (email,password,shift_value)
                 self.run_dataBase(self.db_user,query,parameters)
-                self.frame2.destroy()
                 time.sleep(1)
                 self.frame_user()
-                # self.restart()
             else:
                 errorMessage.showerror("Error", "Fields are Empties")
         except Exception as e:
@@ -828,10 +823,8 @@ class TLDClock():
                 query = "INSERT INTO timeClock VALUES (?,?,?,?)"
                 parameters = tuple(clock_Data)
                 self.run_dataBase(self.db_clockTime,query,parameters)
-                self.frame2.destroy()
                 time.sleep(1)
                 self.frame_time()
-                # self.restart()
 
             else:
                 errorMessage.showerror("Error", "Fields are Empties or Wrong format")
@@ -992,8 +985,6 @@ class TLDClock():
             weekend = saturday or sunday
             #Get Hour Minute Seconds
             today_hour = int(time.strftime("%H"))
-            today_minute = int(time.strftime("%M"))
-            today_second = int(time.strftime("%S"))
             #variables to get shift value form user db
             shift = ""
 
@@ -1003,23 +994,23 @@ class TLDClock():
                 shift = user["shift"]
 
             #Night shift Friday until 08 am
-            friday_Hour = today_hour >= 5 and today_minute >= 0 and today_second >= 10
+            friday_Hour = today_hour > 5
             #Night shift sunday from 20 pm
-            sunday_Hour = today_hour < 20 and today_minute >= 0 and today_second >= 0
+            sunday_Hour = today_hour < 20 
 
             if(shift.lower() == "day"):
                 if(not(weekend)):
-                    # self.check_time()
-                    print("Turno diurno activado")
+                    self.check_time()
                 else:
-                    print("Day shift: day off")
+                    pass
               
             if(shift.lower() == "night"):
-                if((friday and not(friday_Hour)) and not(saturday) and (sunday and not(sunday_Hour))):
-                    print("Turno nocturno activado")
-                    pass
+                if((friday and not(friday_Hour) and not(saturday))):
+                    self.check_time()   
+                elif((sunday and not(sunday_Hour))):
+                    self.check_time()
                 else:
-                    print("Night shift: day off")
+                    pass
 
         except Exception as e:
             print(f"Error: {type(e).__name__} -> shift")
@@ -1036,7 +1027,7 @@ class TLDClock():
             user = self.load_user_info()
 
             if(not(user == None) and not(clockData == None)):
-                # self.shift()
+                self.shift()
                 pass
 
             #Labels
@@ -1216,7 +1207,6 @@ class TLDClock():
         except Exception as e:
             print(type(e).__name__)
             pass
-
 
     def reboot(self):
         try:
