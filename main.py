@@ -1379,9 +1379,9 @@ class TLDClock():
         try:
             self.window.destroy()
             #Path with python/tkinter app when is running with cmd
-            os.startfile("main.py")
+            # os.startfile("main.py")
             #Path when this pass is a desktop app.
-            # os.startfile(resource_path("A-B0T.exe"))
+            os.startfile(resource_path("A-B0T.exe"))
         except Exception as e:
             errorMessage.showwarning("Error",f"Path Erro: {type(e).__name__}")
             
