@@ -1067,7 +1067,7 @@ class TLDClock():
             if(today_hour == clock_in["hour"] and 
             today_minute == clock_in["minutes"] and 
             today_second == clock_in["seconds"]):
-                # self.tld_clockIn.startConnection()
+                self.tld_clockIn.startConnection()
                 records_name = "Clock In"
                 self.clockIn_message = self.tld_clockIn.clockTime()
                 self.active_clockIn_message = True
@@ -1078,7 +1078,7 @@ class TLDClock():
             if(today_hour == break_in["hour"] and 
            today_minute == break_in["minutes"] and 
            today_second == break_in["seconds"]):
-                # self.tld_breakIn.startConnection()
+                self.tld_breakIn.startConnection()
                 records_name = "Break In"
                 self.breakIn_message = self.tld_breakIn.clockTime()
                 self.active_breakIn_message = True
@@ -1089,7 +1089,7 @@ class TLDClock():
             if(today_hour == break_out["hour"] and 
             today_minute == break_out["minutes"] and 
             today_second == break_out["seconds"]):
-                # self.tld_breakOut.startConnection()
+                self.tld_breakOut.startConnection()
                 records_name = "Break Out"
                 self.breakOut_message = self.tld_breakOut.clockTime()
                 self.active_breakOut_message = True
@@ -1100,7 +1100,7 @@ class TLDClock():
             if(today_hour == clock_out["hour"] and 
            today_minute == clock_out["minutes"] and 
            today_second == clock_out["seconds"]):
-                # self.tld_clockOut.startConnection()
+                self.tld_clockOut.startConnection()
                 records_name = "Clock Out"
                 self.clockOut_message = self.tld_clockOut.clockTime()
                 self.active_clockOut_message = True
