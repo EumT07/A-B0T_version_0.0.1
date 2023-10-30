@@ -71,7 +71,7 @@ class TLDClock():
         #window App settings
         self.window = window
         self.window.title("A-B0T")
-        self.window.iconbitmap(resource_path("img\\boticon.ico"))
+        self.window.iconbitmap(resource_path("assets\\boticon.ico"))
         self.window.eval("tk::PlaceWindow . center")
         self.window.resizable(0,0)
         self.window.geometry("440x400")
@@ -83,9 +83,9 @@ class TLDClock():
         
         
         #Img
-        self.logo = PhotoImage(file=resource_path("img\\greenbot.PNG"))
+        self.logo = PhotoImage(file=resource_path("assets\\greenbot.PNG"))
         #User Icon
-        self.user_icon = PhotoImage(file=resource_path("img\\blackbot.PNG"))
+        self.user_icon = PhotoImage(file=resource_path("assets\\blackbot.PNG"))
 
         #Show first intro
         self.loading_app()
