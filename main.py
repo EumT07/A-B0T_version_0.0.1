@@ -71,7 +71,7 @@ class TLDClock():
         #window App settings
         self.window = window
         self.window.title("A-B0T")
-        self.window.iconbitmap(resource_path("img\\icon.ico"))
+        self.window.iconbitmap(resource_path("img\\boticon.ico"))
         self.window.eval("tk::PlaceWindow . center")
         self.window.resizable(0,0)
         self.window.geometry("440x400")
@@ -83,9 +83,9 @@ class TLDClock():
         
         
         #Img
-        self.logo = PhotoImage(file=resource_path("img\\logo.PNG"))
+        self.logo = PhotoImage(file=resource_path("img\\greenbot.PNG"))
         #User Icon
-        self.user_icon = PhotoImage(file=resource_path("img\\userIcon.PNG"))
+        self.user_icon = PhotoImage(file=resource_path("img\\blackbot.PNG"))
 
         #Show first intro
         self.loading_app()
@@ -418,12 +418,12 @@ class TLDClock():
             #Image logo
             image = Label(self.frameUser,image=self.user_icon)
             image.config(bg="#2c2c2c")
-            image.grid(row=0,column=0,columnspan=4,padx=100,pady=15,sticky=N+S)
+            image.grid(row=0,column=0,columnspan=4,padx=90,pady=15,sticky=N+S)
 
             #Framer user
             userInfo = LabelFrame(self.frameUser,text="User Info",padx=5,pady=5)
             userInfo.config(bg="#2c2c2c",fg="#fff",font=("Adobe Garamond Pro",10,"bold"))
-            userInfo.grid(row=1,column=0,columnspan=4,padx=100,pady=10,sticky=N)
+            userInfo.grid(row=1,column=0,columnspan=4,padx=95,pady=10,sticky=N)
         
             # Lables
             #Email
@@ -1375,7 +1375,7 @@ class TLDClock():
             pass
     #Restart APP          
     def restart(self):
-        """There is an issue, I haven't figured out yet, but the problem is when you save data and start the app when the app is running, it starts writing text on top of the previous text, I think the problem is when we try to delete or destroy the frame. So next code just close the app and start again to avoid this issue."""
+        """Restart app."""
         try:
             self.window.destroy()
             #Path with python/tkinter app when is running with cmd
