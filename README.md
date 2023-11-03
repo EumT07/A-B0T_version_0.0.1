@@ -20,6 +20,13 @@ $ py / python3 main.py
    <li>Sqlite3</li>
  </ul>
 
+<h2>Screenshot</h2>
+<div align="center">
+ <img width="280" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/img/A-B0T-1.png" >
+ <img width="250" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/img/A-B0T-3.png" >
+ <img width="250" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/img/A-B0T-4.png" >
+</div>
+
 <h1 align="center"># Technologies I used </h2>
 
 <div align="center">
