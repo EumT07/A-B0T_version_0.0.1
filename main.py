@@ -176,7 +176,7 @@ class TLDClock():
             help = Menu(menuBar,tearoff=0)
             menuBar.add_cascade(label="Help",menu=help)
             #help: 1 manual
-            help.add_command(label="More info",state="disabled")
+            help.add_command(label="More info",command=self.website)
             #help: 2 contact
             help.add_command(label="Send feedback",state="disabled")
             #help: 3 Notificacions
@@ -1178,6 +1178,13 @@ class TLDClock():
             pass
       
     #Help Frame
+    def website(self):
+        try:
+            webbrowser.open_new("https://eumt07.github.io/A-B0T_web-v_0.0.1/")
+        except Exception as e:
+            print(type(e).__name__)
+            pass
+        
     def manual(self):
         pass
     

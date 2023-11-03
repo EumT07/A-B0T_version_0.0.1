@@ -17,6 +17,7 @@ $ py / python3 main.py
    <li>selenium</li>
    <li>request</li>
    <li>webbrowser</li>
+   <li>Sqlite3</li>
  </ul>
 
 <h1 align="center"># Technologies I used </h2>
