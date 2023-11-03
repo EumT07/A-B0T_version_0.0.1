@@ -1,3 +1,8 @@
+
+<div align="center"> 
+ <img width="120" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/assets/whitebot.png">
+</div>
+
 # A-B0T_version_0.0.1
 A-Bot is just a simple bot to help me control my time work, I'm using the selenium module in order to access the page with my email and password and run the code And I built a desktop app with tkinter in order to have a interface to execute my code and make this a little friendly.  This is a little project to test or improve my knowledge skills with Python
 
@@ -22,9 +27,9 @@ $ py / python3 main.py
 
 <h2>Screenshot</h2>
 <div align="center">
- <img width="280" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/img/A-B0T-1.png" >
- <img width="250" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/img/A-B0T-3.png" >
- <img width="250" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/img/A-B0T-4.png" >
+ <img width="280" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/assets/A-B0T-1.png" >
+ <img width="250" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/assets/A-B0T-3.png" >
+ <img width="250" src="https://github.com/EumT07/A-B0T_version_0.0.1/blob/master/assets/A-B0T-4.png" > 
 </div>
 
 <h1 align="center"># Technologies I used </h2>
